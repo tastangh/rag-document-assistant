@@ -1,0 +1,149 @@
+## Sayfa 1
+
+### 1. Overview 
+
+relatively limited. In the reporting period, growth forecasts for both 2025 and 2026 have been revised upward in many countries. Meanwhile, risks to the global growth outlook have recently been skewed to the downside. Elevated geopolitical tensions and fading but still persisting uncertainties regarding tariffs pose risks in terms of global financial markets and supply chains. While the divergence between energy and nonenergy commodity prices continues, precious metal and industrial metal prices stand out with significant increases amid heightened volatility. The global disinflation process remains in place with variations across countries. While central banks are nearing the end of their cutting cycles, the magnitude and frequency of rate cuts vary across countries. Although few in number, there are also central banks that are increasing their policy rates. While portfolio flows towards emerging markets have fluctuated due to global uncertainties, the Fed's and the BoJ's monetary policy strategies for 2026 may have an impact on portfolio movements.
+
+
+
+In the reporting period, portfolio inflows to emerging economies have displayed fluctuations, and global uncertainty has remained elevated due to the recently exacerbated geopolitical risks. In the reporting period, global uncertainties increased due to geopolitical developments, and portfolio flows into TRY assets continued. Against this background, Türkiye's CDS premium declined to 218 basis points on February 6,converging to the average of emerging market risk premiums, and the implied volatility of the Turkish lira declined in the current reporting period. The increase in CBRT reserves continued due also to the increase in gold prices, and the CBRT's gross international reserves reached USD 218.2 billion as of January 30.
+
+While financial conditions have remained tight, the share of TRy deposits has stabilized at around 60%.The rate cuts of 150 and 100 basis points in the MPC meetings of December 11 and January 22, respectively,have transmitted into deposit and loan rates. Positive real interest rates in both loans and deposits are maintained based on both realized and expected inflation. Amid the tight monetary policy, investors'preference for the TRY continued, while FX deposits grew marginally due to parity and price effects. While the annualized 13-week growth of FX-adjusted total loans shows an increase due to the year-end balance sheet effect in 2025, this increase lost some pace in 2026. The effects of the decisions taken by the CBRT and the BRSA at the end of January on loan growth will be closely monitored.
+
+Having accelerated in the second quarter of 2o25, economic activity decelerated somewhat in the third quarter, growing close to its quarterly potential. In the third quarter, GDP increased by 3.7% year-on-year and by 1.1% on a quarter-on-quarter basis. Final domestic demand has been the driver of annual and quarterly growth. After declining in the first two quarters of the year, private consumption rebounded in the third quarter, while total investments continued to support growth from the second quarter onwards.Imports of goods and services declined during this period, while exports increased, leading to a positive contribution from net exports to quarterly growth in the third quarter.
+
+
+
+Leading indicators for the last quarter of 2o25 point to demand conditions that continue to support the disinflation process, albeit at a moderating pace. In that period, retail sales excluding gold gained some momentum compared to the previous quarter, yet remained below their long-term trend. Sales of white goods and automobiles increased in the last quarter. Although card spending continued to rise on a quarterly basis in this period, it remained below its long-term trend. The findings from interviews with firms regarding consumption expenditures confirm the ongoing moderate course of domestic demand despite a limited quarter-on-quarter rise. On the production side, industrial production remained almost flat in the fourth quarter. Excluding the typically volatile sectors, industrial production rose slightly on a quarterly basis. Survey-based indicators such as the BTS and PMl also imply a recovery in industrial activity. The flat course of the services production index, which began in the second quarter, continued in the last quarter of the year. Meanwhile, the construction production index rose further in the last quarter.
+
+The labor market is less tight than implied by the headline unemployment rate. Based on the averages of seasonally adjusted monthly data, employment increased by 0.4% (around 136,000 people) in the fourth quarter. In this period, the unemployment rate decreased by 0.2 percentage points quarter-on-quarter,while the labor force participation rate remained flat. The continued high level of the labor underutilization rate suggests that the labor market may not be as tight as implied by the unemployment rate. In the third
+
+## Sayfa 2
+
+quarter of 2025, the fall in real per capita wages coupled with the increase in partial labor productivity brought about lower non-farm real unit wages.
+
+
+
+The seasonally and calendar-adjusted current account deficit increased in the last quarter of 2025. The foreign trade deficit widened in the last quarter due to the rise in the gold trade deficit, the energy trade deficit, and the trade deficit excluding gold and energy. In this period, external demand was moderate,while the increase in exports was mainly driven by rising prices. The increase in imports prevailed across the main groups. Gold imports, supported by the surge in global gold prices, remained strong and rose relative to the third quarter. In the fourth quarter, when uncertainties stemming from global trade policies continued to weigh on the foreign trade balance, the improvement in the terms of trade persisted.Provisional data point to a limited widening in the foreign trade deficit in January. In the October-November period, marked by a widened current account deficit, net capital inflows were recorded arising from GDDS and loans, whereas outflows were seen in foreign direct investments. The net errors and omissions item ran a negative balance, and official reserves decreased. Meanwhile, data for December and January show that both equity and GDDS markets registered inflows.
+
+
+
+Consumer inflation fell to 30.7% in January and materialized close to the upper band of the forecast range presented in the previous Report. Developments across sub-items over the last three months indicate that the largest contribution to disinflation came from energy and core goods groups. Meanwhile,the contribution of the services group remained relatively flat. In January, service inflation was particularly pronounced in items characterized by high labor costs as well as strong tendency for time-dependent pricing and backward indexation. The sharp increase in vegetable prices, driven by seasonal supply conditions, affected food prices. In January, adjustments in administered prices and lump-sum taxes remained lower than in past years, supporting the disinflation process. During the November-January period, international energy prices declined to some extent, while prices of non-energy commodities rose,led by industrial and precious metals. In the first ten days of February, due mostly to crude oil prices,international energy prices recorded increases. In December, geopolitical developments pushed the Global Supply Chain Pressure Index above its historical average, while the downward trend in global and China container indices, which began in July, reversed in November. In the reporting period, the Turkish lira maintained its stable course. Real unit costs, which are predicted to have decelerated in the last quarter of 2025, are expected to increase as of the first quarter of 2026. The moderate upward trend in producer prices in the last two months of the year grew slightly stronger in January. Despite signals of improvement,inflation expectations and pricing behavior still pose risks to disinflation. The underlying inflation lost pace in the last quarter of 2025, but posted a period-specific increase in January. The base year, basket structure,and classification method of the CPI were revised in January 2026. Accordingly, the index share of the services group rose by 7.4 points to 38.4%, while the weight of goods dropped to 61.6%. In addition, the weights of the B and C indices increased by 5.2 and 4.5 points, respectively.
+
+With 70% probability, inflation is projected to be between 15% and 21% at end-2026 and between 6% and 12% at end-2027. Inflation is projected to decline to single-digit levels at end-2028 and then stabilize at the medium-term inflation target of 5%. Interim targets are maintained at 16% and 9% for end-2026 and end2027, respectively, while the target for end-2028 is set at 8%. In the upward revision to the 2026 forecast range relative to the 2025 Inflation Report IV, the increased weight of the services group in the CPl basket has been one of the contributing factors. Moreover, despite the decrease in the assumption for oil and energy prices, the revision in the assumption for TRY-denominated import prices due to the rise in nonenergy commodity prices had an upward effect on forecasts. Limited revisions to food inflation assumptions and the more-limited-than-projected improvement in the underlying inflation and inflation expectations have also led to higher forecasts. The fact that economic activity has been at higher levels than anticipated has likewise played a role in the forecast update. On the other hand, the decline in services inflation, particularly in rent and education, is expected to continue, supporting the disinflation process.Under the outlook in which monetary tightness is maintained and supported by macroprudential policies,the impact of monetary policy on demand conditions is projected to become more pronounced, and inflation expectations are expected to improve. In this framework, the end-2027 inflation forecast range has been maintained.
+
+## Sayfa 3
+
+Medium-term forecasts are based on a framework in which the tight monetary policy stance will be maintained decisively until price stability is achieved, and the coordination among policy components will be sustained. The convergence of inflation expectations to targets is critical for normalization of pricing behavior and stabilization of inflation at low levels. Taking into account the recent developments in underlying inflation, the MPC delivered a modest policy rate cut in January with a prudent approach, and the monetary tightness was maintained in a framework supported by macroprudential policies. The forecasts are based on a framework where monetary policy is determined prudently with a focus on the inflation outlook, considering interim targets. In this context, the output gap is expected to continue supporting the disinflation process. Moreover, in services items that display high inertia, such as rent and education, the rate of increase in prices and the backward-indexation behavior are projected to weaken due to the lagged effects of the tight monetary policy and the contribution of implemented regulations. The moderate outlook for the exchange rate is expected to contribute to a continued decline in core goods inflation. In this process, inflation expectations are projected to improve in line with the interim targets. In the forecast period, the continuation of the coordination between the monetary policy and other economic policies will also support disinflation through demand, cost, and expectation channels.
+
+### 1.1 Monetary Policy Decisions 
+
+## The CBRT reduced the policy rate by 150 basis points in December and 100 basis points in January,
+
+,,,,.delivering a total rate cut of 250 basis points. Assessing that the underlying inflation declined slightly in October and November following an increase in September, the CBRT decided to lower the policy rate from 39.5% to 38% in December. At its January meeting, the CBRT noted that the underlying inflation declined in December, while preliminary data for January indicated an increase in monthly consumer inflation, led by food, with the increase in the underlying inflation being limited. The CBRT also highlighted that while inflation expectations and pricing behavior are showing signs of improvement, they remain a risk factor for the disinflation process. However, stating that demand conditions continued to support the disinflation process, albeit to a lesser extent in the last quarter, the CBRT lowered the policy rate to 37% in January with a modest reduction.
+
+
+
+The CBRT emphasized that the tight monetary policy stance, which will be maintained until price stability is achieved, will strengthen the disinflation process through demand, exchange rate, and expectation channels. The CBRT reiterated that steps to be taken regarding the policy rate would be determined by taking into account realized and expected inflation as well as its underlying trend in a way to ensure the tightness required by the projected disinflation path in line with the interim targets. The CBRT stated that policy rate steps would be reviewed prudently on a meeting-by-meeting basis with a focus on the inflation outlook, and that the monetary policy stance would be tightened in case of a significant deviation in the inflation outlook from the interim targets. The CBRT also indicated that in case of unanticipated developments in credit and deposit markets, monetary transmission mechanism would be supported via additional macroprudential measures.
+
+
+
+Macroprudential measures have been updated to strengthen the monetary transmission mechanism.With the amendment of December 12, 2025, the growth targets for real-person TRY deposit shares were lowered. On January 8, 2026, the calculation period for TRY shares was extended to eight weeks from four weeks. Due to the maturing KKM accounts that had been opened prior to the termination of the opening and renewal of KKM accounts on August 23, 2025, the relevant communiqués were repealed on January 24,2026. On January 31, 2026, the eight-week growth limit for FX loans was reduced to 0.5% from 1%. On the same date, an eight-week growth limit of 2% was introduced for overdraft account limits allocated to consumers.
+
+
+
+The reserve requirement ratios and maximum interest rates for credit cards have been revised. On December 2, 2025, the CBRT announced that the provisional arrangement of a zero-percent reserve requirement on increases in long-term foreign currency liabilities (maturities exceeding one year) obtained directly from abroad by banks and finance companies would not be extended beyond year-end 2025.However, incentives for long-term borrowing were maintained by reducing the reserve requirement ratios for foreign currency liabilities with maturities longer than one year. The same decision also unified the reserve requirement ratios for foreign currency deposits/participation funds and precious metal deposit accounts. On January 24, 2026, the CBRT raised the reserve requirement ratios for TRY-denominated funding obtained from abroad with maturities up to one year by two percentage points. As announced on December 12, the CBRT reduced the maximum monthly interest rates to be applied to credit card
+
+## Sayfa 4
+
+transactions in Turkish lira (including cash withdrawals and usage, and overdraft accounts) by 25 basis points, effective from January 1, 2026 and revised the term debt periods used to determine the maximum interest rates for credit cards. Meanwhile, within the scope of the BRSA's decision of January 29, 2026, the maximum contractual interest rate to be applied in the restructuring of personal credit card debts that have not been paid partially or fully by the due date was limited to the reference rate.
+
+During the current reporting period, excess liquidity in the system increased. Excess liquidity in the system fluctuated at around TRY 500 billion from November to the beginning of December. In the subsequent period, the impact of the Ministry of Treasury and Finance's transactions and monetary base-driven transactions on liquidity remained limited, while excess liquidity increased due to the impact of CBRT operations. The excess liquidity of TRY 413 billion in the system on December 5, 2025 increased to TRY 899billion as of February 9, 2026 (Chart 1.1.1). The OMO outright portfolio purchases for 2026 began in January.As of the transaction date of February 9, 2026, the total amount of outright purchases by the CBRT reached TRY 48.9 billion in nominal terms (Box 1.1).
+
+
+
+During the current reporting period, excess liquidity in the market was mainly withdrawn via overnight sterilization operations. The CBRT carried out sterilization primarily through overnight Turkish lira deposit buying auctions at the policy rate. During this period, one-week reverse swap auctions against gold were also held for sterilization purposes. A limited portion of excess liquidity was withdrawn through overnight quotations at the CBRT overnight borrowing rate. Since January 23, 2026, the CBRT has been sterilizing a portion of excess liquidity by holding deposit buying auctions with one-week maturity.
+
+The amount of funding provided through one-week repo auctions declined due to increased excess liquidity in the system. The one-week repo stock fell from TRY 502 billion on November 3, 2025, to TRY 5.0billion as of February 9, 2026. As the CBRT primarily sterilized excess liquidity at the policy rate, overnight interest rates hovered around the CBRT policy rate (Chart 1.1.2).
+
+
+
+<div style="text-align: center;">Chart 1.1.1: CBRT OMO and Swap  Transactions (One-Week Moving Average, TRY  Billion)  </div>
+
+
+<div style="text-align: center;"><img src="imgs/img_in_chart_box_147_846_594_1242.jpg" alt="Image" width="37%" /></div>
+
+
+<div style="text-align: center;">Chart 1.1.2: CBRT Interest Rates and ShortTerm Interest Rates (%) </div>
+
+
+<div style="text-align: center;"><img src="imgs/img_in_chart_box_626_844_1073_1241.jpg" alt="Image" width="37%" /></div>
+
+## Sayfa 5
+
+### Box 1.1
+
+## CBRT's OMO Portfolio and Outright Purchases 
+
+The CBRT holds a sufficient level of GDDS and lease certificates in its OMO portfolio to support operational flexibility in liquidity management. The securities held in the OMo portfolio enable the control of short-term interest rates and ensure effective liquidity management within the system. This box examines the outlook of the OMo portfolio and outright purchase auctions.
+
+As of February 10, 2026, the size of the OMO portfolio is TRY 311.2 billion in nominal terms. The portfolio's average maturity is approximately 2.88 years. The OMO portfolio is composed of TRY 296billion of GDDS and TRY 15.2 billion of lease certificates (Chart 1).
+
+
+
+<div style="text-align: center;">Chart 1. OMo Portfolio and Diversification (Nominal, TRY Billion)</div>
+
+
+<div style="text-align: center;"><img src="imgs/img_in_chart_box_172_500_589_800.jpg" alt="Image" width="35%" /></div>
+
+
+Source: CBRT.
+
+<div style="text-align: center;"><img src="imgs/img_in_chart_box_640_496_1043_769.jpg" alt="Image" width="33%" /></div>
+
+
+A total of TRY 67.7 billion of the OMO portfolio's total nominal amount will be redeemed in 2026, while TRY 210.3 billion will be redeemed by the end of 2028 (Chart 2). For the remainder of 2026, a total of TRY 142.3 billion in redemptions will occur in the OMO portfolio, including TRY 74.6 billion in coupon payments, in addition to principal.
+
+
+
+<div style="text-align: center;">Chart 2. OMo Portfolio Redemption Profile (Nominal, TRY Billion) </div>
+
+
+<div style="text-align: center;"><img src="imgs/img_in_chart_box_307_1012_915_1346.jpg" alt="Image" width="51%" /></div>
+
+
+The ratio of the OMo portfolio to analytical balance sheet assets serves as an important indicator for monitoring the relative portfolio size. The ratio of the portfolio to assets increased to 3.6 percent with the outright purchases made in 2025. However, it decreased to 2.4 percent by year-end due to redemptions and growth in the analytical balance sheet. As of February 10, 2026, the ratio reached 2.7percent with the outright purchase auctions conducted in 2026 (Chart 3).
+
+## Sayfa 6
+
+<div style="text-align: center;">Chart 3. Ratio of OMO Portfolio to CBRT's Analytical Balance Sheet Assets (%) </div>
+
+
+<div style="text-align: center;"><img src="imgs/img_in_chart_box_298_229_916_590.jpg" alt="Image" width="51%" /></div>
+
+
+In order to maintain operational flexibility, it is important to gradually support the OMo portfolio.Accordingly, it was publicly announced in the Monetary Policy for 2026 text that the OMO portfolio would be supported through outright purchase auctions. In the 2026 Monetary Policy text, the annual OMO portfolio size was set at a nominal TRY 450 billion, with a plan to purchase a total of TRY 255billion in nominal terms throughout the year to reach this level.
+
+
+
+Accordingly, outright purchase auctions, using the multiple-price method, began to be held in 2026.Auctions were conducted on Thursdays and Fridays, taking into account market liquidity conditions.Market conditions and factors such as the concentration of securities' ownership, liquidity, and pricing compared to similar securities were considered when the securities to be auctioned were determined.Of the announced nominal TRY 55 billion for outright purchase auctions in 2026, TRY 217.6 billion in bids were received, and TRY 48.9 billion in outright purchases were made.
+
+<div style="text-align: center;">Chart 4. Outright Purchase Auctions  Secondary Market Price Impact Placebo Distribution* (Frequency, Relative Return)</div>
+
+
+<div style="text-align: center;"><img src="imgs/img_in_chart_box_288_964_934_1308.jpg" alt="Image" width="54%" /></div>
+
+
+Source: Authors' calculations, BiST.
+
+* The average relative return of the outright purchases was calculated using the securities from outright purchase auctions held in 2026. The non-shaded areas indicate the 95% confidence interval. The placebo sample distribution was created using the kernel method by bootstrapping the daily relative returns for 10,000 times in the fourth quarter of 2025.
+
+## Sayfa 7
+
+Additionally, the impact of the auctions conducted in 2026 on the secondary market prices is examined (Chart 4). In this regard, an index created from the changes in the clean price of fixed-coupon securities in the market is compared with the change in the clean price of the securities subject to outright purchase on the auction day.1 The average difference in the prices of the securities subject to the outright purchase auctions is calculated as 0.04 percent relative to index. This difference is compared with the distribution of the averages of placebo samples obtained on non-auction days. Therefore, it cannot be concluded that the average relative returns of the auctioned securities were diverged from those of the placebo sample distribution. According to the findings, considering the auction days,amounts, and securities, the market impact of the outright purchase auctions held in 2026 was negligible.²
+
+
+
+Since the beginning of 2016, the total outright purchases are composed of TRY 32.5 billion of fixedcoupon GDDS, TRY 11.3 billion of TLREF-indexed GDDS, and TRY 5.1 billion of lease certificates.Correspondingly, the purchases have supported portfolio diversification while strengthening the CBRT's capacity to operate in repo markets and the Committed Transactions Market.
+
+In summary, the amount of outright purchases required to reach the determined 2026 OMo portfolio level is assessed as limited compared to the expected redemptions in the portfolio. Additionally, it is concluded that outright purchase auctions held in 2026 had a negligible market impact. As of February 10, 2026, TRY 48.9 billion of the targeted TRY 255 billion in outright purchases has been realized. The OMO portfolio will continue to be supported throughout the remainder of the year.
