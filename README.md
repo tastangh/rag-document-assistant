@@ -1,7 +1,7 @@
 # rag-document-assistant
 rag-document-assistant
 
-
+FİŞ OCR İÇİN
 cd /home/mtastan/workspace/rag-document-assistant
 source .venv/bin/activate
 pip install -U "huggingface_hub[cli]" datasets

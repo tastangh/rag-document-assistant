@@ -58,3 +58,5 @@ faz'1 de yaptıklarımı devlog a aktardım.
 Nasıl bir çözüm izleyeceğimi araştıramya başlayacağım llm ve internette bununla ilgili şeylere bakacağım.
 
 kullandığım pdfde yazım hatalarının olduğunu da gördüm özellikle bu iş için bir pdf bulmata çalışacağım 
+
+merkez bankası enflasyon raporu türkçe pdf olarak projeye indirdim aynı şekilde belli bir kısmının ingilizce halini buldum onu da koydum. taranmış görseller de eklemek istedim cord datasetinden 2 tane ingilizce taranmış belge görseli indirdim. fiş dataseti de buldum ama fiş belge görsel kapsamında mı emin olamadım şimdilik zamanı efektif kullanmak için atladım . 
