@@ -1,3 +1,4 @@
 /temp
 /.venv
 /.paddlex_cache
+/.pycache

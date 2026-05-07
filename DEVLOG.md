@@ -25,6 +25,36 @@ context precision, recall vb değerlerini incelemeliyiz edge case ve normal test
 # Faz 8: Dökümantasyon ve Video 
 istenen md dosyaları son hale getirilir.
 
-faz 1 e başlandı 
+# faz 1 e başlandı 
+Şimdi yapmamız gereken ilk aşama pdf ve resimleri OCR İle okuyup belirli bir formata çevirmek. Burdaki sıkıntı olabilecek şeyler tablolar ,türkçe karakterler ve pdf içindeki resimler vb olabilir diye öngörüyorum.
+ PDF/JPG/PNG dosyalarını alıp RAG için tek bir Markdown çıktısı üretmeyi uygulamayı düşünüyorum.
+ 
+  `requirements.txt` dosyasını oluşturdum ve temel bağımlılıkları ekledim (`paddleocr`, `paddlepaddle`, `pymupdf`, `opencv-python-headless`, `numpy`, `beautifulsoup4`). paddle ocr kurulumunda sorunlar yaşadım fakat çözdüm.
 
-paddleocr problemleri var
+  document_processor.py diye dosya oluşturdum faz 1 de planlanan döküman resim okuma ve formatlama işlemini burada yapacağım.
+
+py'a girdi kontrolü ekledimn . validate_input func ile artık tanımladığım girdiler haricinde format kabul edilmiyor. 
+
+import fitz  # PyMuPDF diye bişi buldum llm ile konuşarak bunun pdf i sayfa sayfa görsele çevirdiğini öğrendim.    _pdf_to_images i fitz kullanarak yapmaya çalışıldı.
+
+layout + OCR + table parsing + reading order'I PP-structure v3 ile yapmaya çalıştım.
+
+abloları korumak için HTML tablo çıktısını Markdown grid tabloya (`| ... |`) dönüştüren fonksiyon ekledim.
+
+Sayfa içeriklerini sıralı şekilde birleştirip tek Markdown metni döndüren akışı tamamladım.
+
+ Script sonuna `if __name__ == "__main__"` bloğu ekleyip `input_file` ve `--output` ile test edilebilir hale getirdim.
+
+  NumPy 2.x uyumsuzluğu yaşadım; `numpy==1.26.4` ile sabitleyerek çözdüm.
+  
+  PaddleOCR 3.5 API farkları nedeniyle fallback OCR parametrelerini sürüme uyumlu hale getirdim (`use_textline_orientation`, `device` vb.).
+
+  CPU’da görülen PP-StructureV3 `onednn/pir` hatasını `enable_mkldnn=False` ile giderdim.
+
+  Son durumda sistem PDF’den `.md` üretir hale geldi fakat birebir düzgün ocr etmediğini gözle doğruladım 
+
+# 07-05-2026 
+faz'1 de yaptıklarımı devlog a aktardım. 
+Nasıl bir çözüm izleyeceğimi araştıramya başlayacağım llm ve internette bununla ilgili şeylere bakacağım.
+
+kullandığım pdfde yazım hatalarının olduğunu da gördüm özellikle bu iş için bir pdf bulmata çalışacağım 
