@@ -11,6 +11,7 @@ import logging
 import os
 import re
 import inspect
+from html import unescape
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
 
@@ -217,6 +218,12 @@ class DocumentProcessor:
         except Exception as exc:
             raise RuntimeError(f"Belge yüklenemedi: {path}") from exc
 
+        # Yatayda çok geniş (muhtemel çift sayfa) taramaları otomatik böl.
+        expanded_page_images: List[np.ndarray] = []
+        for image in page_images:
+            expanded_page_images.extend(self._split_double_page_image(image))
+        page_images = expanded_page_images
+
         page_markdowns: List[str] = []
 
         for page_idx, page_image in enumerate(page_images, start=1):
@@ -236,14 +243,36 @@ class DocumentProcessor:
 
     def _process_single_page(self, image_bgr: np.ndarray) -> str:
         """Tek sayfayı PP-Structure ile parse eder, gerekirse OCR fallback uygular."""
+        candidates: List[str] = []
+
+        # 1) Orijinal görüntü ile dene.
         structured_md = self._extract_markdown_with_structure(image_bgr)
         structured_md = self._normalize_markdown_tables(structured_md)
-
         if structured_md.strip():
-            return structured_md
+            candidates.append(structured_md)
 
-        # Layout pipeline boş döndüyse OCR fallback.
-        return self._run_fallback_ocr(image_bgr)
+        # 2) Basit ön işlenmiş görüntü ile dene (zayıf taramalarda daha iyi sonuç verebilir).
+        preprocessed = self._preprocess_image_for_ocr(image_bgr)
+        structured_pre = self._extract_markdown_with_structure(preprocessed)
+        structured_pre = self._normalize_markdown_tables(structured_pre)
+        if structured_pre.strip():
+            candidates.append(structured_pre)
+
+        if candidates:
+            return max(candidates, key=self._score_text_quality)
+
+        # Layout pipeline boş döndüyse OCR fallback (orijinal + ön işlenmiş).
+        fallback_orig = self._normalize_markdown_tables(self._run_fallback_ocr(image_bgr))
+        fallback_pre = self._normalize_markdown_tables(self._run_fallback_ocr(preprocessed))
+
+        for text in (fallback_orig, fallback_pre):
+            if text.strip():
+                candidates.append(text)
+
+        if candidates:
+            return max(candidates, key=self._score_text_quality)
+
+        return ""
 
     def _extract_markdown_with_structure(self, image_bgr: np.ndarray) -> str:
         """PP-StructureV3/PPStructure sonuçlarından Markdown üretir."""
@@ -379,22 +408,19 @@ class DocumentProcessor:
         tr_text = self._ocr_to_text(self.ocr_tr, image_bgr)
         en_text = self._ocr_to_text(self.ocr_en, image_bgr)
 
-        # Basit birleştirme stratejisi: daha uzun sonucu ana gövde seç,
-        # diğerini yalnızca anlamlı farklılık varsa ekle.
-        primary, secondary = (tr_text, en_text) if len(tr_text) >= len(en_text) else (en_text, tr_text)
-        primary = primary.strip()
-        secondary = secondary.strip()
-
-        if not primary and not secondary:
+        tr_text = tr_text.strip()
+        en_text = en_text.strip()
+        if not tr_text and not en_text:
             return ""
-        if not secondary or secondary == primary:
-            return primary
 
-        # Sekonder çıktı önemli derecede farklıysa ek bilgi olarak ekle.
-        if secondary and secondary not in primary:
-            return f"{primary}\n\n---\n\n{secondary}"
+        candidates: List[str] = [text for text in (tr_text, en_text) if text]
 
-        return primary
+        # Dillerin farklı güçlü taraflarını kaçırmamak için birleşik adayı da değerlendir.
+        if tr_text and en_text and tr_text != en_text:
+            combined = f"{tr_text}\n\n---\n\n{en_text}"
+            candidates.append(combined)
+
+        return max(candidates, key=self._score_text_quality)
 
     @staticmethod
     def _ocr_to_text(ocr_engine: Any, image_bgr: np.ndarray) -> str:
@@ -435,10 +461,168 @@ class DocumentProcessor:
 
         def _replace(match: re.Match[str]) -> str:
             html_table = match.group(0)
-            return DocumentProcessor._html_table_to_markdown(html_table)
+            table_md = DocumentProcessor._html_table_to_markdown(html_table)
+            if not table_md:
+                return ""
+            return DocumentProcessor._sanitize_markdown_table(table_md)
 
         normalized = table_pattern.sub(_replace, markdown_text)
+        normalized = DocumentProcessor._strip_html_wrappers(normalized)
+        normalized = DocumentProcessor._cleanup_markdown_whitespace(normalized)
         return normalized.strip()
+
+    @staticmethod
+    def _sanitize_markdown_table(table_md: str) -> str:
+        """Bozuk/gürültülü tabloları düz metne indirger, iyi tabloları korur."""
+        lines = [ln.rstrip() for ln in table_md.splitlines() if ln.strip()]
+        if len(lines) < 2:
+            return table_md.strip()
+
+        data_rows = lines[2:] if len(lines) > 2 else []
+        if not data_rows:
+            return table_md.strip()
+
+        cells: List[str] = []
+        for row in data_rows:
+            if not row.startswith("|"):
+                continue
+            parts = [cell.strip() for cell in row.strip().strip("|").split("|")]
+            cells.extend(parts)
+
+        if not cells:
+            return table_md.strip()
+
+        total_cells = len(cells)
+        empty_cells = sum(1 for c in cells if not c)
+        short_cells = sum(1 for c in cells if 0 < len(c) <= 1)
+        alnum_chars = sum(sum(ch.isalnum() for ch in c) for c in cells)
+        total_chars = sum(len(c) for c in cells)
+
+        empty_ratio = empty_cells / max(total_cells, 1)
+        short_ratio = short_cells / max(total_cells, 1)
+        alnum_ratio = alnum_chars / max(total_chars, 1)
+
+        # Heuristik: aşırı boş, aşırı tek-karakterli veya çok düşük alfanümerik yoğunluk.
+        noisy = (
+            (empty_ratio > 0.65 and len(data_rows) >= 3)
+            or (short_ratio > 0.55 and len(data_rows) >= 4)
+            or (alnum_ratio < 0.22 and len(data_rows) >= 4)
+        )
+        if not noisy:
+            return table_md.strip()
+
+        flattened_cells = [c for c in cells if c and len(c) > 1]
+        if not flattened_cells:
+            return ""
+
+        compact_text = " ".join(flattened_cells)
+        compact_text = re.sub(r"\s{2,}", " ", compact_text).strip()
+        return compact_text
+
+    @staticmethod
+    def _strip_html_wrappers(text: str) -> str:
+        """OCR çıktısındaki gereksiz HTML sarmalayıcılarını temizler."""
+        if not text:
+            return ""
+
+        cleaned = re.sub(r"</?(html|body)\b[^>]*>", "", text, flags=re.IGNORECASE)
+        cleaned = re.sub(r"</?div\b[^>]*>", "", cleaned, flags=re.IGNORECASE)
+        cleaned = re.sub(r"<br\s*/?>", "\n", cleaned, flags=re.IGNORECASE)
+        return unescape(cleaned)
+
+    @staticmethod
+    def _cleanup_markdown_whitespace(text: str) -> str:
+        """Satır/satır sonu boşluklarını normalize eder."""
+        if not text:
+            return ""
+
+        lines = [line.rstrip() for line in text.splitlines()]
+        normalized = "\n".join(lines)
+        normalized = re.sub(r"\n{3,}", "\n\n", normalized)
+        return normalized.strip()
+
+    @staticmethod
+    def _score_text_quality(text: str) -> float:
+        """Heuristik kalite skoru: daha okunabilir adayı seçmek için kullanılır."""
+        if not text:
+            return float("-inf")
+
+        lowered = text.lower()
+        letters = sum(ch.isalpha() for ch in text)
+        digits = sum(ch.isdigit() for ch in text)
+        spaces = sum(ch.isspace() for ch in text)
+        bad_chars = text.count("�")
+        pipes = text.count("|")
+
+        score = (
+            letters
+            + (0.5 * digits)
+            + (0.2 * spaces)
+            - (20.0 * bad_chars)
+            - (0.1 * pipes)
+        )
+
+        # Temizlikten kaçan gereksiz HTML katmanlarını cezalandır.
+        if "<html" in lowered or "<body" in lowered:
+            score -= 150.0
+        if "<div" in lowered:
+            score -= 50.0
+
+        return score
+
+    @staticmethod
+    def _deskew_grayscale(binary_image: np.ndarray) -> np.ndarray:
+        """Tahmini küçük eğiklikleri düzeltir."""
+        coords = np.column_stack(np.where(binary_image < 250))
+        if coords.size == 0 or coords.shape[0] < 800:
+            return binary_image
+
+        angle = cv2.minAreaRect(coords)[-1]
+        angle = -(90 + angle) if angle < -45 else -angle
+
+        # Aşırı veya anlamsız açılarla döndürme yapmayalım.
+        if abs(angle) < 0.15 or abs(angle) > 20:
+            return binary_image
+
+        h, w = binary_image.shape[:2]
+        center = (w // 2, h // 2)
+        matrix = cv2.getRotationMatrix2D(center, angle, 1.0)
+        rotated = cv2.warpAffine(
+            binary_image,
+            matrix,
+            (w, h),
+            flags=cv2.INTER_CUBIC,
+            borderMode=cv2.BORDER_REPLICATE,
+        )
+        return rotated
+
+    @staticmethod
+    def _preprocess_image_for_ocr(image_bgr: np.ndarray) -> np.ndarray:
+        """Zor taramalar için temel OCR ön işleme."""
+        gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
+
+        h, w = gray.shape[:2]
+        max_side = max(h, w)
+        if 0 < max_side < 1800:
+            scale = 1800.0 / float(max_side)
+            new_w = int(round(w * scale))
+            new_h = int(round(h * scale))
+            gray = cv2.resize(gray, (new_w, new_h), interpolation=cv2.INTER_CUBIC)
+
+        # Kontrast iyileştirme + hafif gürültü azaltma.
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        gray = clahe.apply(gray)
+        gray = cv2.GaussianBlur(gray, (3, 3), 0)
+
+        # İkilileştirme OCR doğruluğunu özellikle eski belgelerde artırır.
+        _, binary = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+        if np.mean(binary) < 127:
+            binary = cv2.bitwise_not(binary)
+
+        binary = cv2.medianBlur(binary, 3)
+        binary = DocumentProcessor._deskew_grayscale(binary)
+
+        return cv2.cvtColor(binary, cv2.COLOR_GRAY2BGR)
 
     @staticmethod
     def _html_table_to_markdown(html_table: str) -> str:
@@ -568,6 +752,55 @@ class DocumentProcessor:
             raise ValueError(f"Resim okunamadı: {image_path}")
         return image
 
+    @staticmethod
+    def _split_double_page_image(image_bgr: np.ndarray) -> List[np.ndarray]:
+        """Yan yana iki sayfa olabilecek taramaları otomatik left/right böler."""
+        h, w = image_bgr.shape[:2]
+        if h <= 0 or w <= 0:
+            return [image_bgr]
+
+        aspect_ratio = w / float(h)
+        # Muhafazakar eşik: belirgin geniş görüntülerde split dene.
+        if aspect_ratio < 1.35:
+            return [image_bgr]
+
+        gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
+        _, binary_inv = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+        vertical_ink = binary_inv.sum(axis=0).astype(np.float64)
+
+        if vertical_ink.size < 20:
+            return [image_bgr]
+
+        center = w // 2
+        half_band = max(int(w * 0.15), 20)
+        l_bound = max(center - half_band, 0)
+        r_bound = min(center + half_band, w)
+        center_band = vertical_ink[l_bound:r_bound]
+        if center_band.size == 0:
+            return [image_bgr]
+
+        gutter_idx = l_bound + int(np.argmin(center_band))
+        gutter_ink = float(vertical_ink[gutter_idx])
+        mean_ink = float(np.mean(vertical_ink)) + 1e-6
+
+        # Ortadaki boşluk yeterince belirgin değilse split yapma.
+        if gutter_ink > (0.45 * mean_ink):
+            return [image_bgr]
+
+        left = image_bgr[:, :gutter_idx]
+        right = image_bgr[:, gutter_idx:]
+        if left.size == 0 or right.size == 0:
+            return [image_bgr]
+
+        # İki parçanın da içerik taşıdığını doğrula.
+        left_ink = float(binary_inv[:, :gutter_idx].sum())
+        right_ink = float(binary_inv[:, gutter_idx:].sum())
+        total_ink = left_ink + right_ink + 1e-6
+        if (left_ink / total_ink) < 0.2 or (right_ink / total_ink) < 0.2:
+            return [image_bgr]
+
+        return [left, right]
+
     def _validate_input(self, path: Path) -> None:
         """Dosya türü ve erişilebilirlik kontrollerini yapar."""
         if not path.exists() or not path.is_file():
@@ -587,6 +820,47 @@ def process_document_to_markdown(file_path: str | Path, use_gpu: bool = False) -
     return processor.process_document(file_path)
 
 
+def process_directory_to_markdown(
+    input_dir: str | Path,
+    output_dir: str | Path,
+    use_gpu: bool = False,
+    recursive: bool = True,
+) -> List[Path]:
+    """Bir klasördeki destekli dosyaları tek tek işleyip .md çıktıları üretir."""
+    in_dir = Path(input_dir)
+    out_dir = Path(output_dir)
+    if not in_dir.exists() or not in_dir.is_dir():
+        raise FileNotFoundError(f"Girdi klasörü bulunamadı: {in_dir}")
+
+    out_dir.mkdir(parents=True, exist_ok=True)
+    processor = DocumentProcessor(use_gpu=use_gpu)
+
+    pattern = "**/*" if recursive else "*"
+    files = [
+        p
+        for p in in_dir.glob(pattern)
+        if p.is_file() and p.suffix.lower() in processor.SUPPORTED_EXTENSIONS
+    ]
+    files = sorted(files, key=lambda p: p.name.lower())
+
+    if not files:
+        LOGGER.warning("İşlenecek destekli dosya bulunamadı: %s", in_dir)
+        return []
+
+    written: List[Path] = []
+    for src in files:
+        try:
+            markdown = processor.process_document(src)
+            out_path = out_dir / f"{src.stem}.md"
+            out_path.write_text(markdown, encoding="utf-8")
+            written.append(out_path)
+            LOGGER.info("Tamamlandı: %s -> %s", src.name, out_path.name)
+        except Exception as exc:
+            LOGGER.exception("Dosya işlenemedi: %s | Hata: %s", src, exc)
+
+    return written
+
+
 if __name__ == "__main__":
     # Örnek kullanım:
     #   python document_processor.py test.pdf
@@ -596,7 +870,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="PDF/JPG/PNG belgelerini OCR + layout analizi ile Markdown'a dönüştürür."
     )
-    parser.add_argument("input_file", help="test.pdf veya test.jpg gibi giriş dosyası")
+    parser.add_argument(
+        "input_file",
+        nargs="?",
+        default=None,
+        help="Tek dosya modu: test.pdf veya test.jpg gibi giriş dosyası",
+    )
+    parser.add_argument(
+        "--input-dir",
+        default=None,
+        help="Klasör modu: destekli dosyaların okunacağı klasör",
+    )
     parser.add_argument(
         "--gpu",
         action="store_true",
@@ -605,20 +889,46 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output",
         default="output.md",
-        help="Markdown çıktısının kaydedileceği dosya (varsayılan: output.md)",
+        help="Tek dosya modu: Markdown çıktısının kaydedileceği dosya (varsayılan: output.md)",
+    )
+    parser.add_argument(
+        "--output-dir",
+        default=None,
+        help="Klasör modu: .md çıktılarının kaydedileceği klasör",
+    )
+    parser.add_argument(
+        "--no-recursive",
+        action="store_true",
+        help="Klasör modunda alt klasörleri tarama",
     )
 
     args = parser.parse_args()
 
     try:
-        markdown_output = process_document_to_markdown(args.input_file, use_gpu=args.gpu)
+        if args.input_dir:
+            default_output_dir = Path(__file__).resolve().parent / "results" / "ocrMdResults"
+            output_dir = args.output_dir or str(default_output_dir)
+            written = process_directory_to_markdown(
+                input_dir=args.input_dir,
+                output_dir=output_dir,
+                use_gpu=args.gpu,
+                recursive=not args.no_recursive,
+            )
+            print(f"Toplam çıktı: {len(written)} dosya")
+            for path in written:
+                print(path.resolve())
+        else:
+            if not args.input_file:
+                raise ValueError("Tek dosya modu için `input_file` veya klasör modu için `--input-dir` verin.")
 
-        output_path = Path(args.output)
-        output_path.write_text(markdown_output, encoding="utf-8")
+            markdown_output = process_document_to_markdown(args.input_file, use_gpu=args.gpu)
 
-        print(f"Markdown başarıyla üretildi: {output_path.resolve()}")
-        print("--- Önizleme (ilk 1200 karakter) ---")
-        print(markdown_output[:1200])
+            output_path = Path(args.output)
+            output_path.write_text(markdown_output, encoding="utf-8")
+
+            print(f"Markdown başarıyla üretildi: {output_path.resolve()}")
+            print("--- Önizleme (ilk 1200 karakter) ---")
+            print(markdown_output[:1200])
     except Exception as err:
         print(f"Hata: {err}")
         raise SystemExit(1)

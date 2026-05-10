@@ -16,3 +16,16 @@ numpy==1.26.4
 
 # HTML table -> Markdown grid conversion
 beautifulsoup4>=4.12.0
+
+# Faz 2: chunking + embedding
+sentence-transformers>=3.0.0
+# Torch GPU wheels (CUDA) are served from PyTorch index.
+--extra-index-url https://download.pytorch.org/whl/cu128
+# Install CPU version by default. If you use CUDA, replace with GPU version below.
+# torch>=2.2.0
+# Install GPU version
+torch==2.11.0+cu128
+langchain-text-splitters>=0.2.0
+
+# Faz 3: vector DB + retrieval
+chromadb>=1.0.0

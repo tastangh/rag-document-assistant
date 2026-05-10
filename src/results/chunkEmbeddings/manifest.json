@@ -1,0 +1,21 @@
+{
+  "model_name": "BAAI/bge-m3",
+  "embedding_dim": 1024,
+  "chunk_count": 124,
+  "created_at": "2026-05-07T19:58:47.985429+00:00",
+  "source_docs": [
+    "Case_Study_TUSAŞ_LLM.md",
+    "merkezbankası.md",
+    "merkezbankası_eng.md",
+    "tarama_eng.md",
+    "tarama_eng2.md",
+    "tarama_tr.md",
+    "tarama_tr2.md"
+  ],
+  "device": "cuda",
+  "dtype": "float32",
+  "artifacts": {
+    "chunks_jsonl": "chunks.jsonl",
+    "embeddings_npy": "embeddings.npy"
+  }
+}
