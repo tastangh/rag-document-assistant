@@ -35,6 +35,9 @@ DEFAULT_PERSIST_DIR = Path("src/results/vectorStore/chroma")
 DEFAULT_COLLECTION = "rag_chunks_v1"
 DEFAULT_EMBED_MODEL = "BAAI/bge-m3"
 DEFAULT_RERANK_MODEL = "BAAI/bge-reranker-v2-m3"
+DEFAULT_INITIAL_K = 16
+DEFAULT_FINAL_K = 5
+DEFAULT_DEVICE = "cuda"
 
 
 @dataclass
@@ -264,12 +267,17 @@ def _resolve_embed_model_for_query(
 
 
 def _build_where_filter(doc_id: Optional[str], chunk_type: Optional[str]) -> Optional[Dict[str, Any]]:
-    where: Dict[str, Any] = {}
+    clauses: List[Dict[str, Any]] = []
     if doc_id:
-        where["doc_id"] = {"$eq": doc_id}
+        clauses.append({"doc_id": {"$eq": doc_id}})
     if chunk_type:
-        where["chunk_type"] = {"$eq": chunk_type}
-    return where or None
+        clauses.append({"chunk_type": {"$eq": chunk_type}})
+
+    if not clauses:
+        return None
+    if len(clauses) == 1:
+        return clauses[0]
+    return {"$and": clauses}
 
 
 def _embed_question(question: str, model_name: str, device: str) -> np.ndarray:
@@ -323,10 +331,10 @@ def retrieve_contexts(
     question: str,
     persist_dir: Path,
     collection_name: str,
-    initial_k: int = 12,
-    final_k: int = 4,
+    initial_k: int = DEFAULT_INITIAL_K,
+    final_k: int = DEFAULT_FINAL_K,
     embed_model_name: Optional[str] = None,
-    device: str = "auto",
+    device: str = DEFAULT_DEVICE,
     doc_id: Optional[str] = None,
     chunk_type: Optional[str] = None,
     reranker_model: str = DEFAULT_RERANK_MODEL,
@@ -563,20 +571,20 @@ def _add_shared_query_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "--device",
         choices=["auto", "cpu", "cuda", "mps"],
-        default="auto",
-        help="Sorgu embedding cihazi (varsayilan: auto)",
+        default=DEFAULT_DEVICE,
+        help=f"Sorgu embedding cihazi (varsayilan: {DEFAULT_DEVICE})",
     )
     parser.add_argument(
         "--initial-k",
         type=int,
-        default=12,
-        help="Ilk asama vektor retrieval aday sayisi",
+        default=DEFAULT_INITIAL_K,
+        help=f"Ilk asama vektor retrieval aday sayisi (varsayilan: {DEFAULT_INITIAL_K})",
     )
     parser.add_argument(
         "--final-k",
         type=int,
-        default=4,
-        help="Rerank sonrasi donulecek nihai baglam sayisi",
+        default=DEFAULT_FINAL_K,
+        help=f"Rerank sonrasi donulecek nihai baglam sayisi (varsayilan: {DEFAULT_FINAL_K})",
     )
     parser.add_argument(
         "--doc-id",

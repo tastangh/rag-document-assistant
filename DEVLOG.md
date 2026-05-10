@@ -142,4 +142,157 @@ manifest ile chunks.jsonl ve embeddings.npy tutarliligini da kontrol ettim.
 
 faz 2 bu haliyle tamam gibi .
 
+# 10-05-2026
 
+faz 3 e basladim.
+faz 2 de urettigim chunk + embedding kullanip chroma tarafinda index kurdum (build-index). bu adimla birlikte retrieval icin veri tabani hazir hale geldi.
+
+ardindan query testleri yaptim.
+query komutlariyla case study ve turkce ocr/chunking ile ilgili sorular sordum, sistemin en ilgili chunklari getirip getirmedigini kontrol ettim. genel olarak akisin calistigini gordum.
+
+rerank tarafini da karsilastirdim.
+ayni soruyu bir de --disable-rerank ile kostum, yani reranker acik/kapali sekilde sonuclarin siralamasina etkisini gozlemledim.
+
+ozetle bugun faz 3 te:
+
+index kuruldu
+retrieval query testleri yapildi
+rerank karsilastirmasi yapildi
+sonraki adim olarak kucuk bir eval seti (jsonl) hazirlayip evaluate ile recall@k, mrr, ndcg@k metriklerine bakacagim.
+
+eval.json dosyasÄ± oluÅŸturuldu
+
+
+# 10-05-2026 (devam)
+
+eval tarafini tum ocr md'leri kapsayacak sekilde genislettim.
+src/results/eval/eval_docs.jsonl dosyasini olusturup her dokuman icin soru seti hazirladim (toplam 35 soru).
+
+sonra evaluate komutlarini karsilastirmali kostum (gpu/cuda):
+
+1) initial_k=12 final_k=4 rerank acik
+recall@k: 0.1714
+mrr: 0.0643
+ndcg@k: 0.0912
+
+2) initial_k=16 final_k=5 rerank acik
+recall@k: 0.2571
+mrr: 0.1000
+ndcg@k: 0.1389
+
+3) initial_k=12 final_k=4 rerank kapali
+recall@k: 0.0571
+mrr: 0.0286
+ndcg@k: 0.0361
+
+yorumlarsim:
+- en iyi sonuc 16/5 + rerank acik konfigde geldi.
+- reranker kapaninca metrikler ciddi dustu, yani reranker faydali.
+- su an icin varsayilan retrieval ayarini 16/5 + rerank acik kullanmak daha mantikli.
+
+ayrica bu sureci ogrenirken temel aciklamalari toplayalim diye repo kokune wiki.MD ekledim.
+wiki icine rag temel kavramlari, faz ozeti, metrikler ve gun sonu not formati yazildi.
+
+sonraki adim:
+- eval setini daha da netlestirip (mumkunse chunk bazli etiketleyip) metrikleri tekrar test etmek.
+
+faz 3 kapanis notu:
+- faz 3 tamamlandi.
+- retrieval default ayarini proje icinde kaliciya aldim:
+  - initial_k=16
+  - final_k=5
+  - rerank acik
+  - device=cuda
+- boylece bundan sonra komutlarda elle 16/5 yazmadan da ayni varsayilanlarla devam edebilecegim.
+
+# 10-05-2026 (faz 4)
+
+faz 4'e gectim. hedefim faz 3 retrieval sonucunu yerel llm ile birlestirip ucdan uca soru-cevap almakti.
+
+ilk is olarak src/generation_pipeline.py dosyasini olusturdum.
+burda su akis var:
+- soru al
+- retrieval_pipeline.retrieve_contexts ile baglam cek
+- baglami prompta yerlestir
+- ollama api ile cevabi uret
+- kaynaklari (doc_id, page, chunk_id) ile birlikte json olarak don
+
+ayrica cli tarafina 2 komut ekledim:
+- ask (tek soru)
+- smoke-test (hazir soru setiyle toplu test)
+
+faz 4 icin hazir soru seti de olusturdum:
+src/results/eval/faz4_smoke_questions.jsonl
+
+burda ilk buyuk sorunum ollama modeliydi.
+ask komutunu ilk kostugumda su hatayi aldim:
+HTTP 404 model 'qwen3:8b' not found
+
+bu durumun sebebi koddan degil modelin localde olmamasiymis.
+model adini/kurulumunu duzeltince generation akisina gecebildim.
+
+ikinci sorun retrieval filtre tarafinda cikti.
+--doc-id ve --chunk-type birlikte verilince chroma su hatayi verdi:
+Expected where to have exactly one operator
+
+sebebi where filtresini duz obje vermemdi.
+retrieval_pipeline.py icindeki _build_where_filter fonksiyonunu degistirdim.
+artik birden fazla filtre varsa $and ile gonderiyor.
+
+ucuncu sorun prompt cikti formatinda oldu.
+model bazen cevabin sonuna su satiri kopyaliyordu:
+"3) Baglamda yeterli bilgi yok."
+
+bunu cozmwk icin generation_pipeline.py tarafinda promptu sadeledim.
+- cikti formati satirlarini daha net ve kosullu hale getirdim
+- clean_answer adinda bir temizlik fonksiyonu ekledim
+- sablon sizintisi yapan satirlari post-process ile siliyorum
+
+sonra smoke-test tarafini guclendirdim.
+ilk hali sadece soru listesi okuyordu.
+ben bunu relevant_doc_ids okuyacak hale getirdim ve her soru icin ilgili doc_id ile filtreli retrieval yaptirdim.
+ayrica otomatik kabul kontrolu ekledim:
+- has_answer
+- has_sources
+- source_match
+- no_template_leak
+- passed
+
+ve ozet metrikler:
+- pass_threshold (default 0.70)
+- pass_rate
+- passed_count
+- accepted (true/false)
+
+burda bir kritik hata daha yasadim:
+ilk smoke sonucunda case_study + merkezbankasi sorulari fail gorundu ve source bos geldi.
+sebep doc_id mismatch idi.
+jsonlde ascii doc_id kullaniyordum ama indexte turkce karakterli id vardi.
+
+ornek:
+- Case_Study_TUSAS_LLM yerine Case_Study_TUSAÞ_LLM
+- merkezbankasi yerine merkezbankasý
+- merkezbankasi_eng yerine merkezbankasý_eng
+
+faz4_smoke_questions.jsonl dosyasinda bu idleri birebir indexteki adlarla duzelttim.
+
+tekrar smoke-test kostum.
+son durumda checks tarafinda tum sorular passed:true geldi.
+source_match true, has_sources true, no_template_leak true oldu.
+
+kisa ozet:
+- faz 4 generation pipeline kuruldu
+- ask + smoke-test komutlari calisiyor
+- retrieval + llm + kaynakli cikti ucdan uca calisiyor
+- prompt sizinti sorunu temizlendi
+- filtreleme ve doc_id eslesme sorunlari cozuldu
+- kabul kriteri otomatik olarak eklendi ve testten gecti
+
+faz 4 final karari:
+- faz 4 tamamlandi.
+- varsayilan ayarlarla devam:
+  - initial_k=16
+  - final_k=5
+  - rerank acik
+  - device=cuda
+  - model_name=qwen3:8b
