@@ -1,0 +1,46 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "yazar kim"
+    },
+    {
+      "role": "assistant",
+      "content": "Baglamda yeterli bilgi yok.",
+      "sources": [
+        {
+          "doc_id": "1",
+          "page": 1,
+          "chunk_id": "1::p1::c1",
+          "text_preview": "[Hata: Bu sayfa işlenemedi: (Unimplemented) ConvertPirAttribute2RuntimeAttribute not support [pir::ArrayAttribute<pir::DoubleAttribute>] (at ..\\paddle\\fluid\\framework\\new_executor\\instruction\\onednn\\onednn_instruction..."
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "ashen nedir"
+    },
+    {
+      "role": "assistant",
+      "content": "Baglamda yeterli bilgi yok.",
+      "sources": [
+        {
+          "doc_id": "1",
+          "page": 1,
+          "chunk_id": "1::p1::c1",
+          "text_preview": "[Hata: Bu sayfa işlenemedi: (Unimplemented) ConvertPirAttribute2RuntimeAttribute not support [pir::ArrayAttribute<pir::DoubleAttribute>] (at ..\\paddle\\fluid\\framework\\new_executor\\instruction\\onednn\\onednn_instruction..."
+        }
+      ]
+    }
+  ],
+  "ready": true,
+  "docs": [
+    {
+      "name": "1.pdf",
+      "path": "src\\results\\ui_simple_runtime\\sessions\\06e74a35-ddc5-4ffd-8c8e-8caa9a3a2e1b\\uploads\\1.pdf",
+      "status": "ready"
+    }
+  ],
+  "last_error": "",
+  "model_name": "qwen3:8b"
+}

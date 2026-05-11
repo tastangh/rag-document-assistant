@@ -1,4 +1,4 @@
-"""Faz 4: Retrieval + local LLM (Ollama) generation pipeline.
+﻿"""Faz 4: Retrieval + local LLM (Ollama) generation pipeline.
 
 Akis:
 1) Soru icin retrieval (Faz 3)
@@ -26,10 +26,11 @@ from retrieval_pipeline import (
     DEFAULT_RERANK_MODEL,
     retrieve_contexts,
 )
+from config import GUARDRAIL_MODEL, GUARDRAIL_THRESHOLD, OLLAMA_MODEL, OLLAMA_URL
 
 
-DEFAULT_OLLAMA_URL = "http://localhost:11434/api/generate"
-DEFAULT_OLLAMA_MODEL = "qwen3:8b"
+DEFAULT_OLLAMA_URL = OLLAMA_URL
+DEFAULT_OLLAMA_MODEL = OLLAMA_MODEL
 DEFAULT_DEVICE = "cuda"
 
 
@@ -50,10 +51,11 @@ class SourceItem:
     text_preview: str
 
 FALLBACK_ANSWER = "Baglamda yeterli bilgi yok."
+GUARDRAIL_REJECT_ANSWER = "Veri bulunamadı."
 # Desteklenen alinti ornekleri:
-# [doc_id:Case_Study_TUSAŞ_LLM:p2::c1]
-# [Case_Study_TUSAŞ_LLM:p2::c1]
-# [Case_Study_TUSAŞ_LLM:p2:c1]
+# [doc_id:Case_Study_TUSAÅ_LLM:p2::c1]
+# [Case_Study_TUSAÅ_LLM:p2::c1]
+# [Case_Study_TUSAÅ_LLM:p2:c1]
 CITATION_RE = re.compile(
     r"\[(?:doc_id:)?(?P<doc_id>[^:\]]+):p(?P<page>\d+):(?P<chunk>[^\]]+)\]"
 )
@@ -97,7 +99,7 @@ def build_prompt(question: str, context_block: str) -> str:
 
 
 def clean_answer(answer: str) -> str:
-    """Modelin prompt sızıntısı olarak kopyaladığı şablon satırlarını temizler."""
+    """Modelin prompt sÄ±zÄ±ntÄ±sÄ± olarak kopyaladÄ±ÄŸÄ± ÅŸablon satÄ±rlarÄ±nÄ± temizler."""
     text = answer.strip()
     lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
     cleaned: List[str] = []
@@ -168,17 +170,111 @@ def to_sources(contexts: Sequence[Dict[str, Any]]) -> List[SourceItem]:
     return sources
 
 
-def _tokenize(text: str) -> set[str]:
-    tokens = re.findall(r"[A-Za-zÇĞİÖŞÜçğıöşü0-9]+", text.lower())
-    return {t for t in tokens if len(t) > 2}
+class TurkLettuceGuardrail:
+    """Turk-LettuceDetect uyumlu semantik doğrulama katmanı."""
+
+    def __init__(self, model_name: str = GUARDRAIL_MODEL, threshold: float = GUARDRAIL_THRESHOLD) -> None:
+        self.model_name = model_name
+        self.threshold = threshold
+        self._loaded = False
+        self._available = False
+        self._pipeline = None
+        self._load_error: Optional[str] = None
+
+    def _ensure_loaded(self) -> None:
+        if self._loaded:
+            return
+        self._loaded = True
+        try:
+            from transformers import pipeline
+
+            self._pipeline = pipeline(
+                task="token-classification",
+                model=self.model_name,
+                tokenizer=self.model_name,
+                aggregation_strategy="simple",
+            )
+            self._available = True
+        except Exception as exc:  # pragma: no cover
+            self._available = False
+            self._load_error = str(exc)
+
+    @staticmethod
+    def _is_supported_label(label: str) -> Optional[bool]:
+        l = label.strip().lower()
+        if l in {"0", "label_0", "class_0"}:
+            return True
+        if l in {"1", "label_1", "class_1"}:
+            return False
+        if any(k in l for k in ("support", "entail", "ground", "faithful", "true")):
+            return True
+        if any(k in l for k in ("halluc", "unsupport", "contradict", "false")):
+            return False
+        return None
+
+    def verify_claim(self, claim_text: str, contexts: Sequence[str]) -> Dict[str, Any]:
+        self._ensure_loaded()
+        if not self._available or self._pipeline is None:
+            return {
+                "available": False,
+                "supported": False,
+                "score": 0.0,
+                "reason": f"guardrail_model_unavailable: {self._load_error or 'unknown'}",
+            }
+
+        context_text = " ".join(c.strip() for c in contexts if c and c.strip())
+        if not context_text:
+            return {"available": True, "supported": False, "score": 0.0, "reason": "empty_context"}
+
+        composed = f"CONTEXT: {context_text}\nANSWER: {claim_text}"
+        try:
+            preds = self._pipeline(composed, truncation=True, max_length=2048)
+        except Exception as exc:
+            return {"available": False, "supported": False, "score": 0.0, "reason": f"inference_error: {exc}"}
+
+        if not isinstance(preds, list) or not preds:
+            return {"available": True, "supported": False, "score": 0.0, "reason": "empty_prediction"}
+
+        supported_scores: List[float] = []
+        unsupported_scores: List[float] = []
+        for p in preds:
+            label = str(p.get("entity_group") or p.get("entity") or "")
+            score = float(p.get("score", 0.0))
+            support_flag = self._is_supported_label(label)
+            if support_flag is True:
+                supported_scores.append(score)
+            elif support_flag is False:
+                unsupported_scores.append(score)
+
+        if supported_scores:
+            sem_score = float(sum(supported_scores) / max(len(supported_scores), 1))
+            return {
+                "available": True,
+                "supported": sem_score >= self.threshold,
+                "score": sem_score,
+                "reason": "supported_scores",
+            }
+
+        if unsupported_scores:
+            unsup = float(sum(unsupported_scores) / max(len(unsupported_scores), 1))
+            sem_score = max(0.0, 1.0 - unsup)
+            return {
+                "available": True,
+                "supported": sem_score >= self.threshold,
+                "score": sem_score,
+                "reason": "unsupported_scores",
+            }
+
+        return {"available": True, "supported": False, "score": 0.0, "reason": "unmapped_labels"}
 
 
+_GUARDRAIL = TurkLettuceGuardrail()
 def _strip_citations(text: str) -> str:
     return CITATION_RE.sub("", text).strip()
 
 
 def _normalize_citation(doc_id: str, page: int, chunk_raw: str) -> tuple[str, int, str]:
-    """Modelin farklı chunk gösterimlerini canonical chunk_id'ye çevirir.
+    """Modelin farklÄ± chunk gÃ¶sterimlerini canonical chunk_id'ye Ã§evirir.
 
     Ornek:
     - c19 -> <doc_id>::p<page>::c19
@@ -242,7 +338,7 @@ def verify_answer(answer: str, contexts: Sequence[Dict[str, Any]]) -> Dict[str, 
         for c in contexts
     }
     claims = _parse_claims(answer)
-    if answer.strip() == FALLBACK_ANSWER:
+    if answer.strip() in {FALLBACK_ANSWER, GUARDRAIL_REJECT_ANSWER}:
         return {
             "claims": [],
             "claim_count": 0,
@@ -252,11 +348,14 @@ def verify_answer(answer: str, contexts: Sequence[Dict[str, Any]]) -> Dict[str, 
             "confidence": "high",
             "hallucination_risk": "low",
             "fallback_used": True,
+            "guardrail_model": GUARDRAIL_MODEL,
         }
 
     verified_claims: List[Dict[str, Any]] = []
     supported_count = 0
     cited_count = 0
+    guardrail_available_any = False
+
     for claim in claims:
         citations = claim["citations"]
         has_citation = len(citations) > 0
@@ -264,30 +363,38 @@ def verify_answer(answer: str, contexts: Sequence[Dict[str, Any]]) -> Dict[str, 
             cited_count += 1
 
         citation_exists = True
-        overlap_ok = False
-        claim_tokens = _tokenize(claim["plain_text"])
+        cited_contexts: List[str] = []
         for c in citations:
             key = (c["doc_id"], c["page"], c["chunk_id"])
             source_text = source_map.get(key, "")
             if not source_text:
                 citation_exists = False
                 continue
-            src_tokens = _tokenize(source_text)
-            if claim_tokens:
-                overlap = len(claim_tokens & src_tokens) / max(len(claim_tokens), 1)
-                if overlap >= 0.15:
-                    overlap_ok = True
+            cited_contexts.append(source_text)
 
-        supported = has_citation and citation_exists and overlap_ok
+        semantic_supported = False
+        semantic_score = 0.0
+        semantic_reason = "no_citation"
+        if has_citation and citation_exists:
+            sem = _GUARDRAIL.verify_claim(claim_text=claim["plain_text"], contexts=cited_contexts)
+            guardrail_available_any = guardrail_available_any or bool(sem.get("available", False))
+            semantic_supported = bool(sem.get("supported", False))
+            semantic_score = float(sem.get("score", 0.0))
+            semantic_reason = str(sem.get("reason", "unknown"))
+
+        supported = has_citation and citation_exists and semantic_supported
         if supported:
             supported_count += 1
+
         verified_claims.append(
             {
                 "text": claim["text"],
                 "citations": citations,
                 "has_citation": has_citation,
                 "citation_exists": citation_exists,
-                "overlap_ok": overlap_ok,
+                "semantic_supported": semantic_supported,
+                "semantic_score": semantic_score,
+                "semantic_reason": semantic_reason,
                 "supported": supported,
             }
         )
@@ -295,7 +402,11 @@ def verify_answer(answer: str, contexts: Sequence[Dict[str, Any]]) -> Dict[str, 
     claim_count = len(claims)
     supported_ratio = (supported_count / claim_count) if claim_count else 0.0
     citation_coverage = (cited_count / claim_count) if claim_count else 0.0
-    if supported_ratio >= 0.8 and citation_coverage >= 0.9:
+
+    if not guardrail_available_any and claim_count > 0:
+        confidence = "low"
+        risk = "high"
+    elif supported_ratio >= 0.8 and citation_coverage >= 0.9:
         confidence = "high"
         risk = "low"
     elif supported_ratio >= 0.5:
@@ -314,9 +425,9 @@ def verify_answer(answer: str, contexts: Sequence[Dict[str, Any]]) -> Dict[str, 
         "confidence": confidence,
         "hallucination_risk": risk,
         "fallback_used": False,
+        "guardrail_model": GUARDRAIL_MODEL,
+        "guardrail_available": guardrail_available_any,
     }
-
-
 def ask_question(
     question: str,
     persist_dir: Path = DEFAULT_PERSIST_DIR,
@@ -374,8 +485,8 @@ def ask_question(
     verification = verify_answer(raw_answer, contexts)
     answer = raw_answer
     if strict_guardrail and verification["confidence"] == "low":
-        answer = FALLBACK_ANSWER
-        verification = verify_answer(answer, contexts)
+        answer = GUARDRAIL_REJECT_ANSWER
+        verification["fallback_used"] = True
     sources = to_sources(contexts)
 
     return {
@@ -452,7 +563,7 @@ def _evaluate_smoke_result(result: Dict[str, Any], relevant_doc_ids: Sequence[st
 
 def _evaluate_adversarial_result(result: Dict[str, Any]) -> Dict[str, Any]:
     answer = str(result.get("answer", "")).strip()
-    is_safe_reject = answer == FALLBACK_ANSWER
+    is_safe_reject = answer in {FALLBACK_ANSWER, GUARDRAIL_REJECT_ANSWER}
     return {
         "answer": answer,
         "is_safe_reject": is_safe_reject,
@@ -669,3 +780,5 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+

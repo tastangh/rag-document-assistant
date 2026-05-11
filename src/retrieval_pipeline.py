@@ -10,12 +10,21 @@ import argparse
 import json
 import logging
 import math
+import re
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
 import numpy as np
+from config import (
+    CHUNK_ARTIFACTS_DIR,
+    COLLECTION_NAME,
+    EMBED_MODEL_NAME,
+    RERANK_MODEL_NAME,
+    VECTOR_PERSIST_DIR,
+)
 
 try:
     import chromadb as _chromadb
@@ -30,11 +39,11 @@ logging.basicConfig(
 LOGGER = logging.getLogger(__name__)
 
 
-DEFAULT_ARTIFACTS_DIR = Path("src/results/chunkEmbeddings")
-DEFAULT_PERSIST_DIR = Path("src/results/vectorStore/chroma")
-DEFAULT_COLLECTION = "rag_chunks_v1"
-DEFAULT_EMBED_MODEL = "BAAI/bge-m3"
-DEFAULT_RERANK_MODEL = "BAAI/bge-reranker-v2-m3"
+DEFAULT_ARTIFACTS_DIR = CHUNK_ARTIFACTS_DIR
+DEFAULT_PERSIST_DIR = VECTOR_PERSIST_DIR
+DEFAULT_COLLECTION = COLLECTION_NAME
+DEFAULT_EMBED_MODEL = EMBED_MODEL_NAME
+DEFAULT_RERANK_MODEL = RERANK_MODEL_NAME
 DEFAULT_INITIAL_K = 16
 DEFAULT_FINAL_K = 5
 DEFAULT_DEVICE = "cuda"
@@ -51,6 +60,8 @@ class RetrievalCandidate:
     char_len: int
     vector_distance: float
     vector_score: float
+    sparse_score: Optional[float] = None
+    rrf_score: Optional[float] = None
     rerank_score: Optional[float] = None
 
 
@@ -280,6 +291,115 @@ def _build_where_filter(doc_id: Optional[str], chunk_type: Optional[str]) -> Opt
     return {"$and": clauses}
 
 
+def _tokenize_tr(text: str) -> List[str]:
+    if not text:
+        return []
+    return re.findall(r"[0-9A-Za-zÇĞİÖŞÜçğıöşü]+", text.lower())
+
+
+def _get_sparse_candidates(
+    collection: Any,
+    question: str,
+    initial_k: int,
+    where_filter: Optional[Dict[str, Any]],
+) -> List[RetrievalCandidate]:
+    """Collection içindeki dokümanlar üzerinde BM25 benzeri sparse skorlama yapar."""
+    data = collection.get(where=where_filter, include=["documents", "metadatas"])
+    ids = data.get("ids", []) or []
+    docs = data.get("documents", []) or []
+    metas = data.get("metadatas", []) or []
+    if not ids:
+        return []
+
+    tokenized_docs: List[List[str]] = [_tokenize_tr(str(d or "")) for d in docs]
+    query_tokens = _tokenize_tr(question)
+    if not query_tokens:
+        return []
+
+    n_docs = len(tokenized_docs)
+    doc_lens = [len(toks) for toks in tokenized_docs]
+    avgdl = (sum(doc_lens) / n_docs) if n_docs else 0.0
+    if avgdl <= 0:
+        return []
+
+    df: Counter[str] = Counter()
+    for toks in tokenized_docs:
+        for term in set(toks):
+            df[term] += 1
+
+    k1 = 1.5
+    b = 0.75
+    scored: List[Tuple[int, float]] = []
+    for idx, toks in enumerate(tokenized_docs):
+        tf = Counter(toks)
+        score = 0.0
+        dl = len(toks)
+        norm = k1 * (1.0 - b + b * (dl / avgdl))
+        for q in query_tokens:
+            if q not in tf:
+                continue
+            term_df = df.get(q, 0)
+            if term_df <= 0:
+                continue
+            idf = math.log(1.0 + ((n_docs - term_df + 0.5) / (term_df + 0.5)))
+            term_tf = tf[q]
+            score += idf * ((term_tf * (k1 + 1.0)) / (term_tf + norm))
+        if score > 0:
+            scored.append((idx, score))
+
+    scored.sort(key=lambda x: x[1], reverse=True)
+    top = scored[:initial_k]
+
+    candidates: List[RetrievalCandidate] = []
+    for idx, sparse_score in top:
+        meta = metas[idx] or {}
+        doc_text = str(docs[idx] or "")
+        cid = str(ids[idx])
+        candidates.append(
+            RetrievalCandidate(
+                chunk_id=cid,
+                doc_id=str(meta.get("doc_id", "")),
+                page=int(meta.get("page", 0)),
+                section=str(meta.get("section", "ROOT")),
+                chunk_type=str(meta.get("chunk_type", "text")),
+                text=doc_text,
+                char_len=int(meta.get("char_len", len(doc_text))),
+                vector_distance=1.0,
+                vector_score=0.0,
+                sparse_score=float(sparse_score),
+            )
+        )
+    return candidates
+
+
+def _rrf_fuse(
+    vector_candidates: List[RetrievalCandidate],
+    sparse_candidates: List[RetrievalCandidate],
+    rrf_k: int = 60,
+) -> List[RetrievalCandidate]:
+    by_id: Dict[str, RetrievalCandidate] = {}
+    scores: Dict[str, float] = {}
+
+    for rank, cand in enumerate(vector_candidates, start=1):
+        cid = cand.chunk_id
+        by_id[cid] = cand
+        scores[cid] = scores.get(cid, 0.0) + (1.0 / (rrf_k + rank))
+
+    for rank, cand in enumerate(sparse_candidates, start=1):
+        cid = cand.chunk_id
+        if cid not in by_id:
+            by_id[cid] = cand
+        else:
+            by_id[cid].sparse_score = cand.sparse_score
+        scores[cid] = scores.get(cid, 0.0) + (1.0 / (rrf_k + rank))
+
+    merged = list(by_id.values())
+    for row in merged:
+        row.rrf_score = float(scores.get(row.chunk_id, 0.0))
+    merged.sort(key=lambda x: x.rrf_score if x.rrf_score is not None else 0.0, reverse=True)
+    return merged
+
+
 def _embed_question(question: str, model_name: str, device: str) -> np.ndarray:
     if not question.strip():
         raise ValueError("Soru bos olamaz.")
@@ -339,6 +459,7 @@ def retrieve_contexts(
     chunk_type: Optional[str] = None,
     reranker_model: str = DEFAULT_RERANK_MODEL,
     disable_rerank: bool = False,
+    enable_hybrid: bool = True,
 ) -> List[Dict[str, Any]]:
     if initial_k <= 0 or final_k <= 0:
         raise ValueError("initial_k ve final_k pozitif olmali.")
@@ -374,12 +495,12 @@ def retrieve_contexts(
     row_metas = metadatas[0] if metadatas else [{} for _ in row_ids]
     row_distances = distances[0] if distances else [1.0 for _ in row_ids]
 
-    candidates: List[RetrievalCandidate] = []
+    vector_candidates: List[RetrievalCandidate] = []
     for cid, doc_text, meta, dist in zip(row_ids, row_docs, row_metas, row_distances):
         metadata = meta or {}
         vector_distance = float(dist) if dist is not None else 1.0
         vector_score = 1.0 - vector_distance
-        candidates.append(
+        vector_candidates.append(
             RetrievalCandidate(
                 chunk_id=str(cid),
                 doc_id=str(metadata.get("doc_id", "")),
@@ -394,7 +515,26 @@ def retrieve_contexts(
         )
 
     # Chroma cosine distance: dusuk mesafe daha iyi. Vector sirasi yuksek skora cevrildi.
-    candidates = sorted(candidates, key=lambda x: x.vector_distance)
+    vector_candidates = sorted(vector_candidates, key=lambda x: x.vector_distance)
+    candidates: List[RetrievalCandidate] = vector_candidates
+
+    hybrid_applied = False
+    if enable_hybrid:
+        try:
+            sparse_candidates = _get_sparse_candidates(
+                collection=collection,
+                question=question,
+                initial_k=initial_k,
+                where_filter=where_filter,
+            )
+            if sparse_candidates:
+                candidates = _rrf_fuse(
+                    vector_candidates=vector_candidates,
+                    sparse_candidates=sparse_candidates,
+                )
+                hybrid_applied = True
+        except Exception as exc:
+            LOGGER.warning("Sparse/BM25 asamasi hata verdi, dense ile devam ediliyor: %s", exc)
 
     rerank_applied = False
     if not disable_rerank and len(candidates) > 1:
@@ -417,6 +557,9 @@ def retrieve_contexts(
             "char_len": row.char_len,
             "vector_distance": row.vector_distance,
             "vector_score": row.vector_score,
+            "sparse_score": row.sparse_score,
+            "rrf_score": row.rrf_score,
+            "hybrid_applied": hybrid_applied,
             "rerank_score": row.rerank_score,
             "rerank_applied": rerank_applied,
             "model_name": model_name,
@@ -505,6 +648,7 @@ def evaluate_retrieval(
     device: str,
     reranker_model: str,
     disable_rerank: bool,
+    disable_hybrid: bool,
     embed_model_name: Optional[str] = None,
     doc_id: Optional[str] = None,
     chunk_type: Optional[str] = None,
@@ -538,6 +682,7 @@ def evaluate_retrieval(
             chunk_type=row.get("filter_chunk_type") or chunk_type,
             reranker_model=reranker_model,
             disable_rerank=disable_rerank,
+            enable_hybrid=not (disable_hybrid or bool(row.get("disable_hybrid", False))),
         )
         predictions.append(result)
         labels.append(row)
@@ -548,6 +693,7 @@ def evaluate_retrieval(
         "initial_k": initial_k,
         "final_k": final_k,
         "disable_rerank": disable_rerank,
+        "disable_hybrid": disable_hybrid,
         "metrics": metrics,
     }
 
@@ -606,6 +752,11 @@ def _add_shared_query_args(parser: argparse.ArgumentParser) -> None:
         "--disable-rerank",
         action="store_true",
         help="Rerank kapatilir, yalnizca vector skoru sirasi kullanilir.",
+    )
+    parser.add_argument(
+        "--disable-hybrid",
+        action="store_true",
+        help="Dense+sparse hibrit retrieval'i kapatir (yalnizca dense).",
     )
 
 
@@ -679,6 +830,7 @@ def main() -> None:
             chunk_type=args.chunk_type,
             reranker_model=args.reranker_model,
             disable_rerank=args.disable_rerank,
+            enable_hybrid=not args.disable_hybrid,
         )
         print(
             json.dumps(
@@ -703,6 +855,7 @@ def main() -> None:
             device=args.device,
             reranker_model=args.reranker_model,
             disable_rerank=args.disable_rerank,
+            disable_hybrid=args.disable_hybrid,
             embed_model_name=args.model,
             doc_id=args.doc_id,
             chunk_type=args.chunk_type,

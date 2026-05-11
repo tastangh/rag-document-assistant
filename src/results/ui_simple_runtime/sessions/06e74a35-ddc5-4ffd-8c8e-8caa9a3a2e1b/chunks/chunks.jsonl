@@ -1,0 +1,1 @@
+{"chunk_id": "1::p1::c1", "doc_id": "1", "page": 1, "page_no": 1, "section": "ROOT", "chunk_type": "text", "text": "[Hata: Bu sayfa işlenemedi: (Unimplemented) ConvertPirAttribute2RuntimeAttribute not support [pir::ArrayAttribute<pir::DoubleAttribute>] (at ..\\paddle\\fluid\\framework\\new_executor\\instruction\\onednn\\onednn_instruction.cc:118) ]", "char_len": 227}
