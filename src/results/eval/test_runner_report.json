@@ -1,0 +1,38 @@
+{
+  "accepted": true,
+  "passed_count": 5,
+  "total": 5,
+  "ollama_up": true,
+  "results": [
+    {
+      "name": "health_check",
+      "passed": true,
+      "detail": "Gerekli dosyalar mevcut.",
+      "payload": null
+    },
+    {
+      "name": "compile_check",
+      "passed": true,
+      "detail": "py_compile basarili.",
+      "payload": null
+    },
+    {
+      "name": "retrieval_eval",
+      "passed": true,
+      "detail": "skip-retrieval secili",
+      "payload": null
+    },
+    {
+      "name": "generation_smoke",
+      "passed": true,
+      "detail": "skip-generation secili",
+      "payload": null
+    },
+    {
+      "name": "safety_eval",
+      "passed": true,
+      "detail": "skip-safety secili",
+      "payload": null
+    }
+  ]
+}

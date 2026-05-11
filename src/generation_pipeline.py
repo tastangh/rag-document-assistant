@@ -50,7 +50,13 @@ class SourceItem:
     text_preview: str
 
 FALLBACK_ANSWER = "Baglamda yeterli bilgi yok."
-CITATION_RE = re.compile(r"\[([^\]:]+):p(\d+):([^\]]+)\]")
+# Desteklenen alinti ornekleri:
+# [doc_id:Case_Study_TUSAŞ_LLM:p2::c1]
+# [Case_Study_TUSAŞ_LLM:p2::c1]
+# [Case_Study_TUSAŞ_LLM:p2:c1]
+CITATION_RE = re.compile(
+    r"\[(?:doc_id:)?(?P<doc_id>[^:\]]+):p(?P<page>\d+):(?P<chunk>[^\]]+)\]"
+)
 
 
 def _preview(text: str, max_len: int = 220) -> str:
@@ -171,6 +177,29 @@ def _strip_citations(text: str) -> str:
     return CITATION_RE.sub("", text).strip()
 
 
+def _normalize_citation(doc_id: str, page: int, chunk_raw: str) -> tuple[str, int, str]:
+    """Modelin farklı chunk gösterimlerini canonical chunk_id'ye çevirir.
+
+    Ornek:
+    - c19 -> <doc_id>::p<page>::c19
+    - ::c19 -> <doc_id>::p<page>::c19
+    - <doc_id>::p5::c19 -> oldugu gibi
+    """
+    chunk = chunk_raw.strip()
+    # Model bazen p1::c1 formatinda oldugu icin chunk_raw ':c1' gelebiliyor.
+    # Tum bas bastaki ':' karakterlerini temizleyip canonical forma geciyoruz.
+    chunk = chunk.lstrip(":")
+    if chunk.startswith("c"):
+        return doc_id, page, f"{doc_id}::p{page}::{chunk}"
+    if chunk.startswith(f"{doc_id}::p"):
+        return doc_id, page, chunk
+    # Beklenmeyen formatta da yine canonical'a zorla.
+    short = chunk.split("::")[-1]
+    if not short.startswith("c"):
+        short = f"c{short}"
+    return doc_id, page, f"{doc_id}::p{page}::{short}"
+
+
 def _parse_claims(answer: str) -> List[Dict[str, Any]]:
     claims: List[Dict[str, Any]] = []
     if answer.strip() == FALLBACK_ANSWER:
@@ -183,13 +212,24 @@ def _parse_claims(answer: str) -> List[Dict[str, Any]]:
             line = line[1:].strip()
         if not line:
             continue
-        citations = CITATION_RE.findall(line)
+        citations = list(CITATION_RE.finditer(line))
         claims.append(
             {
                 "text": line,
                 "plain_text": _strip_citations(line),
                 "citations": [
-                    {"doc_id": c[0], "page": int(c[1]), "chunk_id": c[2]} for c in citations
+                    {
+                        "doc_id": _normalize_citation(
+                            c.group("doc_id"), int(c.group("page")), c.group("chunk")
+                        )[0],
+                        "page": _normalize_citation(
+                            c.group("doc_id"), int(c.group("page")), c.group("chunk")
+                        )[1],
+                        "chunk_id": _normalize_citation(
+                            c.group("doc_id"), int(c.group("page")), c.group("chunk")
+                        )[2],
+                    }
+                    for c in citations
                 ],
             }
         )

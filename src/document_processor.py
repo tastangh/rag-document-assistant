@@ -31,6 +31,16 @@ logging.basicConfig(
 )
 LOGGER = logging.getLogger(__name__)
 
+# Reduce transformers warning spam triggered by PaddleX/PaddleOCR imports.
+os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+try:
+    import logging as _py_logging
+
+    _py_logging.getLogger("transformers").setLevel(_py_logging.ERROR)
+except Exception:
+    pass
+
 
 class DocumentProcessor:
     """PDF ve resim belgelerini RAG için Markdown'a dönüştürür."""
@@ -212,6 +222,11 @@ class DocumentProcessor:
 
         try:
             if path.suffix.lower() == ".pdf":
+                # PDF zaten text-layer içeriyorsa önce doğrudan metin çıkar.
+                # Bu yol, OCR/Paddle kaynaklı çalışma zamanı hatalarından etkilenmez.
+                direct_pdf_md = self._extract_text_layer_from_pdf(path)
+                if direct_pdf_md.strip():
+                    return direct_pdf_md
                 page_images = self._pdf_to_images(path)
             else:
                 page_images = [self._load_image(path)]
@@ -240,6 +255,34 @@ class DocumentProcessor:
                 )
 
         return "\n\n".join(page_markdowns).strip()
+
+    def _extract_text_layer_from_pdf(self, pdf_path: Path) -> str:
+        """PDF text-layer varsa sayfa bazlı Markdown üretir, yoksa boş döner."""
+        page_markdowns: List[str] = []
+        useful_pages = 0
+        min_chars_per_page = 80
+
+        with fitz.open(pdf_path) as doc:
+            if doc.page_count == 0:
+                return ""
+
+            for page_idx in range(doc.page_count):
+                page = doc.load_page(page_idx)
+                text = page.get_text("text") or ""
+                text = text.replace("\x00", "").strip()
+                if len(text) >= min_chars_per_page:
+                    useful_pages += 1
+                if text:
+                    page_markdowns.append(f"## Sayfa {page_idx + 1}\n\n{text}")
+                else:
+                    page_markdowns.append(f"## Sayfa {page_idx + 1}\n\n[Bu sayfadan metin çıkarılamadı.]")
+
+        # En azından anlamlı bir kısmı text-layer ise bu yolu kullan.
+        coverage = useful_pages / max(len(page_markdowns), 1)
+        if coverage >= 0.4:
+            LOGGER.info("PDF text-layer kullanıldı: %s (coverage=%.2f)", pdf_path.name, coverage)
+            return "\n\n".join(page_markdowns).strip()
+        return ""
 
     def _process_single_page(self, image_bgr: np.ndarray) -> str:
         """Tek sayfayı PP-Structure ile parse eder, gerekirse OCR fallback uygular."""

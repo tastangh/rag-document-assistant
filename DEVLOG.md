@@ -296,3 +296,166 @@ faz 4 final karari:
   - rerank acik
   - device=cuda
   - model_name=qwen3:8b
+
+# 11-05-2026 (faz 5)
+
+faz 5'e gectim. hedefim halusinasyon onleme + cikti dogrulama katmanini eklemekti.
+
+faz 4 sonunda cevap alabiliyordum ama cevaplarin kaynakla ne kadar uyumlu oldugunu otomatik olcecek bir katman yoktu.
+o yuzden generation pipeline uzerine verification katmani ekledim.
+
+src/generation_pipeline.py tarafinda yaptiklarim:
+- promptu kaynak zorunlu hale getirdim.
+- modelden iddialari kaynak etiketiyle yazmasini istedim.
+- citation parse + claim parse + source eslestirme mantigi ekledim.
+- verification cikti alanlari eklendi:
+  - claim_count
+  - supported_count
+  - supported_ratio
+  - citation_coverage
+  - confidence (high/medium/low)
+  - hallucination_risk
+  - fallback_used
+
+strict guardrail ekledim:
+- strict_guardrail=true oldugunda dusuk guvenli cevaplari otomatik olarak
+  "Baglamda yeterli bilgi yok." fallbackine cekiyor.
+
+faz 5 icin test mimarisi kurdum:
+- normal soru seti: src/results/eval/faz4_smoke_questions.jsonl
+- adversarial soru seti: src/results/eval/faz5_adversarial_questions.jsonl
+
+ayrica yeni komut eklendi:
+- safety-eval
+
+safety-eval iki ayri orani olcuyor:
+- normal soru pass rate (beklenen: >= 0.80)
+- adversarial soru pass rate (beklenen: >= 0.90)
+
+burda onemli hatalarla karsilastim:
+
+1) citation parse bugi:
+modelden gelen format [doc_id:...:p1::c1] oldugu halde parser bazen yanlis parse edip
+chunk_id'yi c:c1 seklinde uretiyordu.
+
+cozum:
+- regex ve normalize fonksiyonunu guncelledim.
+- p1::c1 / p1:c1 / doc_id prefiksli formatlari destekledim.
+- normalize tarafinda bastaki ':' karakterlerini temizleyip canonical chunk_id olusturdum.
+
+2) confidence false-negative:
+parse bugi varken citation_exists false oldugu icin supported_ratio 0 cikiyordu.
+bugi duzelttikten sonra citation_exists true gelmeye basladi ve gercekci skorlar goruldu.
+
+3) performans:
+safety-eval cok uzun surdu cunku her soru icin retrieval + rerank + llm + verify calisiyor.
+bu beklenen bir durum.
+hizli tur icin limit dusurme / rerank kapali kosma notunu aldim.
+
+test gozlemi:
+- adversarial sorularda sistem fallback veriyor, guardrail calisiyor.
+- normal sorularda clean dokumanlarda daha iyi, noisy ocr dokumanlarda supported_ratio daha dusuk.
+- dusuk supported_ratio kalan kisimlarin buyuk bolumu pipeline bugi degil, ocr veri kalitesi ile ilgili.
+
+faz 5 final karari:
+- faz 5 tamamlandi.
+- halusinasyon onleme ve cikti dogrulama katmani aktif.
+- strict guardrail ile guvenlikli cikis aliniyor.
+
+not:
+- bir sonraki teknik iyilestirme alani faz 5 degil, noisy ocr belgelerde kalite artirma (preprocess/normalization).
+
+# 11-05-2026 (faz 6 - ui stabilizasyon ve gercek kullanici akisi)
+
+faz 6 tarafinda streamlit ui yi baya degistirdim cunku mevcut akista son kullanici index/chunk gibi teknik seyleri goruyordu ve deneyim iyi degildi.
+hedefi netlestirdim:
+- kullanici sadece belge yuklesin
+- sistem arkada analiz etsin
+- kullanici direkt soru sorsun
+
+ilk asamada ui yi chatgpt benzeri sade akis yaptim:
+- belge yukle
+- sohbetten soru sor
+- kaynaklari expandable alanda goster
+
+sonra buyuk bir sorun cikti:
+- yeni yuklenen belge baglama girmiyor gibi davrandi
+- retrieval eski dokumanlardan sonuc getiriyordu
+
+sebep:
+- tum ocr md havuzunu indexliyordu, oturum izole degildi
+
+cozum:
+- ui runtime altinda session bazli klasor yapisi kurdum
+- uploads / ocr_md / chunks / vector dizinleri session altina alindi
+- ask tarafi sadece bu session vector store uzerinden calisiyor
+
+ikinci buyuk sorun:
+- paddle tarafinda pp-structure hatasi geldiginde md icine hata metni yaziliyordu
+- bu hata metni bazen indexe girip anlamsiz retrieval uretiyordu
+
+cozum:
+- pdf icin once direct text-layer extraction (pymupdf) denedim
+- text varsa ocr a dusmeden direct metni kullandim
+- ocr hata metni patternlerini yakalayip bu dokumani failed sayma mantigi ekledim
+
+ucuncu sorun:
+- refresh atinca sohbet + aktif dokumanlar gidiyordu
+
+cozum:
+- disk kalici state modeli eklendi
+- src/results/ui_runtime/<session_id>/state.json ile
+  - docs
+  - messages
+  - index_signature
+  - ready
+  - model ayarlari
+  - son hata bilgisi
+  saklaniyor
+- acilista state geri yukleniyor
+- silinmis dosyalar state ten temizleniyor
+- onemli her olaydan sonra atomik state write yapiliyor (tmp + replace)
+
+dorduncu sorun:
+- "islenemedi" gibi hata metni encoding bozulunca kaciyordu (islenemedi / işlenemedi vb)
+
+cozum:
+- hata tespitini unicode normalize + ascii sadelestirme + regex imzalarina cevirdim
+- markerlar:
+  - hata
+  - islenemedi varyantlari
+  - unimplemented
+  - onednn_instruction
+  - convertpirattribute2runtimeattribute
+
+ui/ux iyilestirmeleri:
+- belge hazirla butonu kaldirildi (tam otomatik akis)
+- uploadta iki faz spinner:
+  - yukleniyor...
+  - analiz ve index guncelleniyor...
+- sol panelde aktif dokumanlar:
+  - checkbox ile aktif/pasif
+  - X ile kaldirma
+  - durum rozeti: analyzing / ready / failed
+  - failed ise kisa hata metni
+
+soru-cevap tarafinda:
+- ready yoksa artik tek satir generic uyari yerine tanilayici mesaj var:
+  - aktif ready dokuman yok
+  - failed dokuman sayisi
+  - en son hata
+
+bu fazdaki kritik ogrenim:
+- ana problem llm veya retrieval degildi, ingestion ve state yonetimiymis
+- dokuman kalitesi + kalici session + izole index olmadan ui tarafi guven vermiyor
+
+mevcut durum:
+- faz 6 stabilizasyonun ana parcalari tamamlandi
+- sistem artik session-izole calisiyor
+- refresh sonrasi state geri geliyor
+- failed dokumanlar indexe girmiyor
+
+acik not:
+- bazi image-only veya cok zor pdflerde paddle hala fail olabilir
+- bu durumda dokuman failed gorunmesi beklenen davranis
+- sonraki iyilestirme alani dokuman kalite metrikleri ve yeniden dene akisi olabilir

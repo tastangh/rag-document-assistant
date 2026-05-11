@@ -29,3 +29,7 @@ langchain-text-splitters>=0.2.0
 
 # Faz 3: vector DB + retrieval
 chromadb>=1.0.0
+
+# Faz 6: UI
+streamlit>=1.35.0
+torchvision==0.26.0
