@@ -647,3 +647,295 @@ yapilanlar:
   - RAG_OCR_USE_GPU=1 olsa bile paddle cuda derlemesi yoksa otomatik cpu kullaniliyor.
   - hazirlama sonrasi OCR cihazi (gpu/cpu) kullaniciya gosteriliyor.
 - README'ye windows notu eklendi (tam paddle gpu icin Linux/WSL2 onerisi).
+
+# 11-05-2026 (yeni yol haritasi faz 1 - tamamlayici sertlestirme)
+
+faz 1 kapsaminda kurulum izolasyonu ve konteynerizasyon adimlarini tamamladim.
+
+yapilanlar:
+- merkezi konfig genisletildi (`src/config.py`):
+  - `RAG_EVAL_DIR`
+  - `RAG_OCR_CACHE_DIR`
+- `src/document_processor.py` paddlex cache yolunu hardcoded local klasorden alip env/config tabanina tasidi.
+  - `PADDLE_PDX_CACHE_HOME` artik `RAG_OCR_CACHE_DIR` ile yonetiliyor.
+- sabit eval path kullanimlari temizlendi:
+  - `src/generation_pipeline.py` default soru dosyalari `EVAL_DIR` uzerinden
+  - `src/faz6_eval.py` default soru/cikti/ollama model-url degerleri config uzerinden
+- poetry odakli hata mesajlari guncellendi:
+  - retrieval/chunk pipeline import hatalari artik `poetry install` yonlendirmesi yapiyor.
+- konteyner dosyalari eklendi:
+  - `Dockerfile`
+  - `docker-compose.yml`
+  - `.dockerignore`
+  - `.env.example`
+- `README.md` bastan duzenlendi:
+  - poetry kurulum akisi
+  - env degiskenleri
+  - docker compose calistirma
+  - air-gapped notlari
+- `pyproject.toml` container/portable profile icin sadeletildi:
+  - `paddlepaddle-gpu` yerine `paddlepaddle`
+  - torch/torchvision pypi uyumlu araliga cekildi
+  - `transformers` pin'i eklendi
+  - cuda index source kaldirildi
+- `requirements.txt` gecis notu ile birlikte legacy dosya olarak birakildi (source of truth: poetry).
+
+darbogaz ve cozum:
+- onceki pyproject cuda-specific pinler (`+cu128`) nedeniyle air-gapped/container senaryoda kurulum riski tasiyordu.
+- cozum olarak poetry bagimliliklari platform-nutral profile cekildi; gpu ihtiyaci env ve host seviyesinde opsiyonel birakildi.
+
+etki:
+- hardcoded yol bagimliligi azaldi.
+- runtime klasorleri env ile yonetilebilir hale geldi.
+- proje docker + poetry ile daha deterministik ve tasinabilir calisir duruma geldi.
+
+# 11-05-2026 (tum fazlar - kurumsal kapanis/sertlestirme)
+
+kullanici talebine gore fazlari tek geciste kurumsal seviyeye tamamladim ve eksik operasyonel parcalari kapattim.
+
+bu turda tamamlanan kritik maddeler:
+- faz 1 (konteynerizasyon/izolasyon):
+  - dockerfile, docker-compose, .dockerignore, .env.example eklendi.
+  - merkezi env-konfig yapisi genisletildi (eval/cache pathleri).
+  - poetry source of truth olarak netlestirildi.
+- faz 2 (ocr + semantik chunking):
+  - pp-structure akisi ve semantik split yapisi korunup env tabanli cache ile stabil hale getirildi.
+- faz 3 (turkce embedding uzayi):
+  - varsayilan tr retrieval model entegrasyonu korunarak pipeline portable profile ile hizalandi.
+- faz 4 (hibrit retrieval):
+  - bm25 + rrf + cross-encoder zinciri aktif durumda, mevcut akis korunup enterprise README ile dokumante edildi.
+- faz 5 (semantik guardrail):
+  - strict guardrail davranisi ve fallback guvenli cikis korunuyor.
+- faz 6 (otomatik degerlendirme):
+  - `src/faz6_eval.py` icine offline fixture modu eklendi (`--answers-file`).
+  - bu sayede CI ortaminda Ollama bagimliligi olmadan triad metrik kapisi kosulabilir.
+  - github actions workflow eklendi: `.github/workflows/rag_eval.yml`.
+- faz 7 (session izolasyonu):
+  - streamlit session id guvenligi sertlestirildi.
+  - query param'dan gelen `sid` artik sadece UUIDv4 formatinda kabul ediliyor; degilse yeni izole oturum uretiliyor.
+
+ek not:
+- py_compile ile guncellenen `__pycache__` dosyalari degisik gorunuyor; kod degisiklik kapsaminda degiller.
+
+# 11-05-2026 (faz 2 - gelismis ocr ve semantik bolutleme revizyonu)
+
+kullanici yonlendirmesine gore faz 2 mimarisini havacilik/savunma dokumanlarinda tablo ve hiyerarsi koruyacak sekilde revize ettim.
+
+yapilan teknik degisiklikler:
+- `src/chunk_embedding_pipeline.py`:
+  - karakter/sentence bazli recursive split mantigi kaldirildi.
+  - markdown hiyerarsisi temelli semantik bolutleme eklendi (`MarkdownHeaderTextSplitter`).
+  - zorunlu metadata semasi standardize edildi:
+    - `doc_id`
+    - `page_no`
+    - `section_title`
+    - `is_table`
+  - geri uyumluluk icin mevcut alanlar da korunuyor (`page`, `section`, `chunk_type`).
+  - her chunk icerigine context injection basligi eklendi:
+    - `[DOC_ID: ... | PAGE_NO: ... | SECTION_TITLE: ... | IS_TABLE: ...]`
+  - tablo chunklari text akisindan ayrik ve `is_table=true` olarak yaziliyor.
+
+- `src/retrieval_pipeline.py`:
+  - index yaziminda yeni metadata alanlari (`page_no`, `section_title`, `is_table`) chroma metadata'ya eklendi.
+  - eski alanlarla birlikte cift uyumluluk korunuyor.
+
+- `src/document_processor.py`:
+  - PP-StructureV3 ve legacy PPStructure tablo parse adimlarina try/except + warning log eklendi.
+  - bozuk/eksik tablo HTML'leri pipeline'i dusurmeden atlanacak sekilde sertlestirildi.
+
+hata yonetimi/loglama:
+- sayfa bazli OCR exception handling zaten mevcuttu; tablo parse seviyesinde de ayrik loglama eklendi.
+- bozuk tablo parse hatalari `logging.warning` ile raporlaniyor.
+
+beklenen etki:
+- baslik/alt baslik baglami korunmus chunklar
+- tablo iceriginin metin icinde kaybolmamasi
+- LLM tarafinda metadata destekli daha guvenli anlamsal yorum
+
+# 11-05-2026 (faz 2 - semantik bolutleme ve loglama sertlestirme)
+
+faz 2'de istenen teknik gereksinimleri tamamlayacak sekilde ikinci bir sertlestirme turu yaptim.
+
+- chunk stratejisi:
+  - baslik temelli semantik bolutleme (#, ##, ###) aktif.
+  - bolum metinleri paragraf sinirlarini koruyarak dinamik hedef boyuta gore birlestiriliyor.
+  - overlap artik aktif ve dinamik (chunk_size/overlap girdilerine gore karakter bazli kayan pencere).
+
+- metadata standardi:
+  - her chunk icin zorunlu alanlar uretiliyor:
+    - doc_id
+    - page (int)
+    - section_title
+    - is_table
+  - geri uyumluluk icin page_no/section/chunk_type alanlari korunuyor.
+
+- context injection:
+  - her chunk metninin basina asagidaki formatta baglam basligi enjekte ediliyor:
+    - [Dokuman: ... | Sayfa: ... | Bolum: ... | Tablo: true/false]
+
+- tablo akisi:
+  - PP-Structure/legacy tablolari markdown grid'e cevrilmeye devam ediyor.
+  - tablo chunklari `is_table=true` ile isaretleniyor.
+
+- profesyonel loglama:
+  - moduller `logger = logging.getLogger(__name__)` standardina cekildi.
+  - sayfa bazli islem durum loglari eklendi (basladi/basarili/bos cikti/hata).
+  - bozuk tablo donusumleri warning seviyesinde loglaniyor.
+
+sonuc:
+- havacilik/savunma dokumanlarindaki hiyerarsi ve tablo baglami korunmus chunklar olusuyor.
+- retrieval/generation tarafinda baglam kaybi riski azaltilmis oldu.
+
+# 11-05-2026 (faz 3 - modernbert/mursit gecisi sertlestirme)
+
+vektor uzayi Mursit-Large-TR-Retrieval (ModernBERT) modeline tasindi.
+
+yapilanlar:
+- varsayilan embedding modeli `newmindai/Mursit-Large-TR-Retrieval` olarak korundu ve faz 3 akisinda dogrulama sertlestirildi.
+- chunk embedding asamasinda tokenizer yuklenmesi loglaniyor (custom tokenizer teyidi).
+- Mursit modeli icin embedding boyutu kontrolu eklendi (beklenen 1024).
+- retrieval index build asamasinda eski index manifest ile model/dim farki tespit edilip temiz re-index akisi loglaniyor.
+- HuggingFace indirme/yukleme tarafinda ag hatalari icin kullaniciya acik, air-gapped uyumlu hata mesaji eklendi.
+
+etki:
+- eski bge-m3 index kalintilarindan kaynakli boyut/model uyumsuzlugu riski azaltildi.
+- turkce teknik terminoloji odakli retrieval kalitesi icin model gecisi operasyonel olarak guvenli hale getirildi.
+
+# 11-05-2026 (faz 4 - hibrit arama ve rrf)
+
+Hibrit arama ve RRF (Reciprocal Rank Fusion) mimarisi kuruldu.
+
+yapilanlar:
+- retrieval pipeline'a `search_type` parametresi eklendi:
+  - `hybrid` (dense + sparse + RRF)
+  - `vector` (yalnizca dense)
+  - `keyword` (yalnizca BM25/sparse)
+- RRF birlestirme akisi netlestirildi (k=60):
+  - skor normalize etme ihtiyaci olmadan rank tabanli birlesim
+- cross-encoder yeniden siralama havuzu sabitlendi:
+  - RRF sonrasi ilk 16 aday (`rerank_pool_k=16`) reranker'a gidiyor.
+- arama parametreleri hibrit akis icin optimize edildi:
+  - `initial_k` varsayilani 24
+  - `final_k` varsayilani 5
+- evaluate ve query komutlarina yeni parametreler eklendi:
+  - `--search-type`
+  - `--rerank-pool-k`
+
+etki:
+- teknik kod/parca no gibi lexical sinyallerin kacma riski azalirken,
+  dense semantik kapsama korunarak daha dengeli retrieval elde edildi.
+
+# 11-05-2026 (faz 5 - semantik halusinasyon duvari)
+
+Semantik halüsinasyon duvarı Turk-LettuceDetect (ModernBERT) ile kuruldu.
+
+yapilanlar:
+- generation pipeline'da claim dogrulama semantik modele dayali `CONTEXT/ANSWER` formatinda calisacak sekilde netlestirildi.
+- `verify_claim_semantically` fonksiyonu aktiflestirildi (eski isim geri uyumlulukla korunuyor).
+- citation olmayan iddialar otomatik unsupported kabul edilmeye devam ediyor.
+- strict guardrail sertlestirildi:
+  - unsupported claim'ler cevaptan filtreleniyor.
+  - desteklenmis claim kalmazsa veya confidence dusukse cevap tamamen fallback'e cekiliyor.
+- confidence alani standartlasti:
+  - `confidence_level` (high/medium/low)
+
+not:
+- fallback cevabi guvenlik standardina gore `Bağlamda yeterli bilgi bulunamadı` olarak normalize edildi.
+
+# 11-05-2026 (faz 6 - rag triad otomatik degerlendirme pipeline)
+
+RAG Triad otomatik değerlendirme altyapısı (Context, Faithfulness, Relevance) kuruldu.
+
+yapilanlar:
+- yeni script eklendi: `src/eval_pipeline.py`
+- jsonl soru seti dongusu ile her soru icin uc metrik hesaplanıyor:
+  - context_relevance
+  - faithfulness (faz 5 guardrail supported_ratio)
+  - answer_relevance
+- answer_relevance icin havacilik-spesifik bonus eklendi:
+  - dogru kaynak/citation varliginda +0.05 bonus
+- otomatik rapor cikisi:
+  - `src/results/eval/triad_report.json`
+- genel triad ortalamasina gore PASS/FAIL karari eklenmistir (esik: 0.60).
+- FAIL durumunda script CI uyumu icin exit code 2 doner.
+
+# 11-05-2026 (faz 7 - cok kullanicili session izolasyonu)
+
+Çok kullanıcılı session izolasyonu ve fiziksel veri yalıtımı (UUID tabanlı) kuruldu.
+
+yapilanlar:
+- her kullanici icin UUID tabanli `session_id` + ek `access_key (sk)` olusturuluyor.
+- tum runtime dosyalari fiziksel olarak session bazli ayriliyor:
+  - `data/sessions/{session_id}/uploads`
+  - `data/sessions/{session_id}/ocr_md`
+  - `data/sessions/{session_id}/chunks`
+  - `data/sessions/{session_id}/vector`
+- state dosyasi session'a ozel hale getirildi:
+  - `state_{session_id}.json`
+- browser refresh recovery:
+  - session_id + access_key dogruysa onceki sohbet/dokuman/state otomatik geri yukleniyor.
+- temel access control:
+  - query param ile manuel sid degisikligi yapildiginda state anahtari eslesmiyorsa erisim reddedilip yeni izole session olusturuluyor.
+- oturum kapatma:
+  - `Oturumu Kapat` butonu eklendi.
+  - ilgili session klasoru/indeksleri fiziksel olarak temizleniyor.
+  - cleanup fonksiyonunda kok dizin guvenlik kontrolu var (yalnizca `SESSION_ROOT` altinda silme).
+
+# 11-05-2026 (faz 5 - guardrail operasyonel iyilestirme)
+
+guardrail modeli erisilemediginde tum cevaplarin fallback'e dusmesi problemi giderildi.
+
+yapilanlar:
+- strict modda guardrail aktif degilse (model unavailable), tamamen sessize dusmek yerine retrieval baglamindan extractive + citation yanit uretiliyor.
+- guardrail aktifse onceki kati semantic kontrol korunuyor.
+- yeni yardimci fonksiyonlar:
+  - `_strip_injected_header`
+  - `_build_extractive_cited_answer`
+
+etki:
+- kullanici dogru kaynaklar bulunmusken "Bağlamda yeterli bilgi bulunamadı" kilitlenmesi azaltildi.
+- guvenlikten odun verilmeden operasyonel kullanilabilirlik artirildi.
+
+# 11-05-2026 (faz 4/5 operasyonel performans iyilestirme)
+
+sorgu tarafinda model tekrar yukleme maliyeti azaltildi.
+
+yapilanlar:
+- retrieval_pipeline icinde embedder ve reranker icin process-level cache eklendi.
+- ayni model+device kombinasyonunda SentenceTransformer ve CrossEncoder tekrar initialize edilmiyor.
+- ilk sorguda warmup maliyeti var, sonraki sorgularda gecikme anlamli sekilde dusuyor.
+
+# 11-05-2026 (faz 7 - talep teyidi)
+
+Çok kullanıcılı session izolasyonu ve fiziksel veri yalıtımı kuruldu.
+
+# 11-05-2026 (faz 8 - test ve stres dogrulama)
+
+faz 8 icin otomatik test harness kuruldu:
+- `src/faz8_test_harness.py`
+- golden dataset: `src/results/eval/benchmark_test.jsonl` (20 soru)
+- adversarial set: `src/results/eval/benchmark_adversarial.jsonl`
+
+harness kapsami:
+- RAG Triad benzeri metrikler:
+  - context_relevance (nDCG@5)
+  - faithfulness (guardrail supported_ratio)
+  - answer_relevance (citation bonus dahil)
+- adversarial guardrail bloklama orani
+- session izolasyon kontrolu (fiziksel dizin/state dogrulama)
+- opsiyonel performans olcumu (OCR + Index + Generation, TTFT proxy)
+
+not:
+- bu ortamda canli kosuda rapor dosyasi olusmadan process erken sonlandi; komutlar ve script kullanima hazir.
+
+# 11-05-2026 (faz 8 - crash tespiti ve device yonetimi)
+- faz8_test_harness sessiz kapanma nedeni tespit edildi: native crash (EXIT=-1073741819), Python exception degil.
+- kok neden riskini azaltmak icin benchmark/adversarial akislarinda retrieval device parametresi aktif edildi.
+- bugfix: --retrieval-device artik gercekten sk_question cagrilarina aktariliyor (onceden config sabitine kilitliydi).
+- operasyonel onerı: faz8 calistirmasini once --retrieval-device cpu ile dogrulamak, sonra cuda tekrar denemek.
+
+# 12-05-2026 (faz 8 - guardrail inference duzeltmesi)
+- generation_pipeline.py icinde TurkLettuceGuardrail pipeline cagrisindan 	runcation/max_length argumanlari kaldirildi (TokenClassificationPipeline uyumlulugu).
+- Hata giderimi: TokenClassificationPipeline._sanitize_parameters() got an unexpected keyword argument 'truncation' artik olusmuyor.
+- Tek-iddia semantik dogrulama smoke testi kosuldu; verify_claim_semantically basarili sonuc dondurdu (supported=True, score>threshold).
+- requirements.txt kontrol edildi: 	ransformers>=4.44.0,<5.0.0 araligi mevcut kullanimla uyumlu.

@@ -17,19 +17,27 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Sequence
 
+from config import EVAL_DIR, OLLAMA_MODEL, OLLAMA_URL
 from generation_pipeline import FALLBACK_ANSWER, ask_question
 from retrieval_pipeline import DEFAULT_COLLECTION, DEFAULT_PERSIST_DIR
 
 
 def _load_jsonl(path: Path) -> List[Dict[str, Any]]:
     rows: List[Dict[str, Any]] = []
-    with path.open("r", encoding="utf-8") as f:
+    with path.open("r", encoding="utf-8-sig") as f:
         for line in f:
             payload = line.strip()
             if not payload:
                 continue
             rows.append(json.loads(payload))
     return rows
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except Exception:
+        return default
 
 
 def _confidence_to_score(confidence: str) -> float:
@@ -148,30 +156,109 @@ def run_eval(
     }
 
 
+def run_eval_from_answers(answers_file: Path) -> Dict[str, Any]:
+    """CI icin offline/fixture bazli triad hesaplama.
+
+    Beklenen JSONL alanlari:
+    - question (zorunlu)
+    - answer (zorunlu)
+    - relevant_doc_ids (opsiyonel)
+    - sources (opsiyonel)
+    - verification (opsiyonel)
+    """
+    rows = _load_jsonl(answers_file)
+    if not rows:
+        raise RuntimeError("Offline cevap dosyasi bos.")
+
+    results: List[Dict[str, Any]] = []
+    for row in rows:
+        question = str(row.get("question", "")).strip()
+        answer = str(row.get("answer", "")).strip()
+        if not question or not answer:
+            continue
+
+        relevant_doc_ids = list(row.get("relevant_doc_ids", []) or [])
+        sources = list(row.get("sources", []) or [])
+        verification = row.get("verification", {}) or {}
+        confidence = str(verification.get("confidence", "low"))
+        faithfulness = _safe_float(verification.get("supported_ratio", 0.0), default=0.0)
+
+        context_rel = _context_relevance_score(sources=sources, relevant_doc_ids=relevant_doc_ids)
+        answer_rel = _answer_relevance_score(answer=answer, confidence=confidence)
+        triad = (context_rel + faithfulness + answer_rel) / 3.0
+
+        results.append(
+            {
+                "question": question,
+                "relevant_doc_ids": relevant_doc_ids,
+                "answer": answer,
+                "confidence": confidence,
+                "metrics": {
+                    "context_relevance": context_rel,
+                    "faithfulness": faithfulness,
+                    "answer_relevance": answer_rel,
+                    "triad_score": triad,
+                },
+                "sources": sources,
+                "verification": verification,
+                "mode": "offline_fixture",
+            }
+        )
+
+    if not results:
+        raise RuntimeError("Offline cevap dosyasinda gecerli kayit bulunamadi.")
+
+    avg_context = sum(r["metrics"]["context_relevance"] for r in results) / len(results)
+    avg_faith = sum(r["metrics"]["faithfulness"] for r in results) / len(results)
+    avg_answer = sum(r["metrics"]["answer_relevance"] for r in results) / len(results)
+    avg_triad = sum(r["metrics"]["triad_score"] for r in results) / len(results)
+
+    return {
+        "count": len(results),
+        "ragas_available": False,
+        "mode": "offline_fixture",
+        "aggregate": {
+            "context_relevance": avg_context,
+            "faithfulness": avg_faith,
+            "answer_relevance": avg_answer,
+            "triad_score": avg_triad,
+        },
+        "results": results,
+    }
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Faz 6 RAG Triad evaluator")
-    parser.add_argument("--questions-file", default="src/results/eval/faz4_smoke_questions.jsonl")
+    parser.add_argument("--questions-file", default=str(EVAL_DIR / "faz4_smoke_questions.jsonl"))
     parser.add_argument("--persist-dir", default=str(DEFAULT_PERSIST_DIR))
     parser.add_argument("--collection", default=DEFAULT_COLLECTION)
     parser.add_argument("--initial-k", type=int, default=16)
     parser.add_argument("--final-k", type=int, default=5)
-    parser.add_argument("--model", default="qwen3:8b")
-    parser.add_argument("--ollama-url", default="http://localhost:11434/api/generate")
+    parser.add_argument("--model", default=OLLAMA_MODEL)
+    parser.add_argument("--ollama-url", default=OLLAMA_URL)
     parser.add_argument("--strict-guardrail", action="store_true")
     parser.add_argument("--pass-threshold", type=float, default=0.55)
-    parser.add_argument("--output", default="src/results/eval/faz6_triad_report.json")
+    parser.add_argument("--output", default=str(EVAL_DIR / "faz6_triad_report.json"))
+    parser.add_argument(
+        "--answers-file",
+        default=None,
+        help="Opsiyonel offline JSONL cevap dosyasi. Verilirse Ollama cagrisi yapilmaz.",
+    )
     args = parser.parse_args()
 
-    report = run_eval(
-        questions_file=Path(args.questions_file),
-        persist_dir=Path(args.persist_dir),
-        collection_name=args.collection,
-        initial_k=args.initial_k,
-        final_k=args.final_k,
-        model_name=args.model,
-        ollama_url=args.ollama_url,
-        strict_guardrail=args.strict_guardrail,
-    )
+    if args.answers_file:
+        report = run_eval_from_answers(Path(args.answers_file))
+    else:
+        report = run_eval(
+            questions_file=Path(args.questions_file),
+            persist_dir=Path(args.persist_dir),
+            collection_name=args.collection,
+            initial_k=args.initial_k,
+            final_k=args.final_k,
+            model_name=args.model,
+            ollama_url=args.ollama_url,
+            strict_guardrail=args.strict_guardrail,
+        )
     accepted = float(report["aggregate"]["triad_score"]) >= float(args.pass_threshold)
     report["pass_threshold"] = args.pass_threshold
     report["accepted"] = accepted
@@ -187,4 +274,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-

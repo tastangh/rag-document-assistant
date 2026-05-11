@@ -26,7 +26,7 @@ from retrieval_pipeline import (
     DEFAULT_RERANK_MODEL,
     retrieve_contexts,
 )
-from config import GUARDRAIL_MODEL, GUARDRAIL_THRESHOLD, OLLAMA_MODEL, OLLAMA_URL
+from config import EVAL_DIR, GUARDRAIL_MODEL, GUARDRAIL_THRESHOLD, OLLAMA_MODEL, OLLAMA_URL
 
 
 DEFAULT_OLLAMA_URL = OLLAMA_URL
@@ -50,7 +50,7 @@ class SourceItem:
     chunk_id: str
     text_preview: str
 
-FALLBACK_ANSWER = "Baglamda yeterli bilgi yok."
+FALLBACK_ANSWER = "Bağlamda yeterli bilgi bulunamadı"
 GUARDRAIL_REJECT_ANSWER = "Veri bulunamadı."
 # Desteklenen alinti ornekleri:
 # [doc_id:Case_Study_TUSAÅ_LLM:p2::c1]
@@ -212,7 +212,7 @@ class TurkLettuceGuardrail:
             return False
         return None
 
-    def verify_claim(self, claim_text: str, contexts: Sequence[str]) -> Dict[str, Any]:
+    def verify_claim_semantically(self, claim_text: str, contexts: Sequence[str]) -> Dict[str, Any]:
         self._ensure_loaded()
         if not self._available or self._pipeline is None:
             return {
@@ -228,7 +228,7 @@ class TurkLettuceGuardrail:
 
         composed = f"CONTEXT: {context_text}\nANSWER: {claim_text}"
         try:
-            preds = self._pipeline(composed, truncation=True, max_length=2048)
+            preds = self._pipeline(composed)
         except Exception as exc:
             return {"available": False, "supported": False, "score": 0.0, "reason": f"inference_error: {exc}"}
 
@@ -266,6 +266,10 @@ class TurkLettuceGuardrail:
             }
 
         return {"available": True, "supported": False, "score": 0.0, "reason": "unmapped_labels"}
+
+    # Geriye uyumluluk
+    def verify_claim(self, claim_text: str, contexts: Sequence[str]) -> Dict[str, Any]:
+        return self.verify_claim_semantically(claim_text=claim_text, contexts=contexts)
 
 
 _GUARDRAIL = TurkLettuceGuardrail()
@@ -376,7 +380,7 @@ def verify_answer(answer: str, contexts: Sequence[Dict[str, Any]]) -> Dict[str, 
         semantic_score = 0.0
         semantic_reason = "no_citation"
         if has_citation and citation_exists:
-            sem = _GUARDRAIL.verify_claim(claim_text=claim["plain_text"], contexts=cited_contexts)
+            sem = _GUARDRAIL.verify_claim_semantically(claim_text=claim["plain_text"], contexts=cited_contexts)
             guardrail_available_any = guardrail_available_any or bool(sem.get("available", False))
             semantic_supported = bool(sem.get("supported", False))
             semantic_score = float(sem.get("score", 0.0))
@@ -423,11 +427,52 @@ def verify_answer(answer: str, contexts: Sequence[Dict[str, Any]]) -> Dict[str, 
         "supported_ratio": supported_ratio,
         "citation_coverage": citation_coverage,
         "confidence": confidence,
+        "confidence_level": confidence,
         "hallucination_risk": risk,
         "fallback_used": False,
         "guardrail_model": GUARDRAIL_MODEL,
         "guardrail_available": guardrail_available_any,
     }
+
+
+def _filter_supported_claims(raw_answer: str, verification: Dict[str, Any]) -> str:
+    claims = list(verification.get("claims", []) or [])
+    if not claims:
+        return raw_answer.strip()
+
+    supported_texts = {str(c.get("text", "")).strip() for c in claims if bool(c.get("supported", False))}
+    if not supported_texts:
+        return ""
+
+    kept: List[str] = []
+    for ln in raw_answer.splitlines():
+        line = ln.strip()
+        if not line:
+            continue
+        normalized = line[1:].strip() if line.startswith("-") else line
+        if normalized in supported_texts:
+            kept.append(f"- {normalized}")
+    return "\n".join(kept).strip()
+
+
+def _strip_injected_header(text: str) -> str:
+    return re.sub(r"^\[Dokuman:[^\]]+\]\s*", "", text.strip(), flags=re.IGNORECASE)
+
+
+def _build_extractive_cited_answer(contexts: Sequence[Dict[str, Any]], max_items: int = 3) -> str:
+    lines: List[str] = []
+    for row in list(contexts)[:max_items]:
+        doc_id = str(row.get("doc_id", "")).strip()
+        page = int(row.get("page", 0))
+        chunk_id = str(row.get("chunk_id", "")).strip()
+        raw_text = str(row.get("text", "")).strip()
+        clean_text = _strip_injected_header(raw_text)
+        clean_text = re.sub(r"\s+", " ", clean_text)
+        if not clean_text:
+            continue
+        snippet = clean_text[:220].rstrip() + ("..." if len(clean_text) > 220 else "")
+        lines.append(f"- {snippet} [{doc_id}:p{page}:{chunk_id}]")
+    return "\n".join(lines).strip()
 def ask_question(
     question: str,
     persist_dir: Path = DEFAULT_PERSIST_DIR,
@@ -483,10 +528,29 @@ def ask_question(
     prompt = build_prompt(question=question, context_block=build_context_block(contexts))
     raw_answer = call_ollama(prompt=prompt, model_name=model_name, ollama_url=ollama_url)
     verification = verify_answer(raw_answer, contexts)
-    answer = raw_answer
-    if strict_guardrail and verification["confidence"] == "low":
-        answer = GUARDRAIL_REJECT_ANSWER
-        verification["fallback_used"] = True
+    filtered_answer = _filter_supported_claims(raw_answer=raw_answer, verification=verification)
+    answer = filtered_answer or raw_answer
+
+    guardrail_available = bool(verification.get("guardrail_available", False))
+
+    # Katı bariyer:
+    # - Guardrail modeli aktifse unsupported claim'ler engellenir.
+    # - Guardrail modeli yoksa tamamen sessize dusmek yerine baglamdan extractive+citation cevap uretilir.
+    if strict_guardrail:
+        if guardrail_available:
+            if (
+                verification.get("confidence_level") == "low"
+                or float(verification.get("supported_ratio", 0.0)) < GUARDRAIL_THRESHOLD
+                or not filtered_answer
+            ):
+                answer = FALLBACK_ANSWER
+                verification["fallback_used"] = True
+        else:
+            if not filtered_answer:
+                extractive = _build_extractive_cited_answer(contexts)
+                answer = extractive if extractive else FALLBACK_ANSWER
+                verification["fallback_used"] = answer == FALLBACK_ANSWER
+                verification["reason"] = "guardrail_unavailable_extractive_mode"
     sources = to_sources(contexts)
 
     return {
@@ -541,7 +605,7 @@ def _evaluate_smoke_result(result: Dict[str, Any], relevant_doc_ids: Sequence[st
     has_answer = bool(answer)
     no_template_leak = ("3) Baglamda yeterli bilgi yok." not in answer) and ("CIKTI FORMATI" not in answer)
     verification = result.get("verification", {}) or {}
-    confidence = str(verification.get("confidence", "low"))
+    confidence = str(verification.get("confidence_level", verification.get("confidence", "low")))
     supported_ratio = float(verification.get("supported_ratio", 0.0))
     fallback_used = bool(verification.get("fallback_used", False))
     source_consistent = confidence in {"high", "medium"} and supported_ratio >= 0.5
@@ -563,7 +627,7 @@ def _evaluate_smoke_result(result: Dict[str, Any], relevant_doc_ids: Sequence[st
 
 def _evaluate_adversarial_result(result: Dict[str, Any]) -> Dict[str, Any]:
     answer = str(result.get("answer", "")).strip()
-    is_safe_reject = answer in {FALLBACK_ANSWER, GUARDRAIL_REJECT_ANSWER}
+    is_safe_reject = answer in {FALLBACK_ANSWER, GUARDRAIL_REJECT_ANSWER, "Baglamda yeterli bilgi yok."}
     return {
         "answer": answer,
         "is_safe_reject": is_safe_reject,
@@ -594,7 +658,7 @@ def build_parser() -> argparse.ArgumentParser:
     smoke_cmd = subparsers.add_parser("smoke-test", help="Hazir soru seti ile hizli uc-tan-uca test")
     smoke_cmd.add_argument(
         "--questions-file",
-        default="src/results/eval/faz4_smoke_questions.jsonl",
+        default=str(EVAL_DIR / "faz4_smoke_questions.jsonl"),
         help="JSONL soru dosyasi",
     )
     smoke_cmd.add_argument("--persist-dir", default=str(DEFAULT_PERSIST_DIR))
@@ -616,8 +680,8 @@ def build_parser() -> argparse.ArgumentParser:
     smoke_cmd.add_argument("--strict-guardrail", action="store_true", help="Dusuk guvenli cevaplari fallback'e zorla")
 
     safety_cmd = subparsers.add_parser("safety-eval", help="Faz 5 normal+yaniltici soru guvenlik degerlendirmesi")
-    safety_cmd.add_argument("--normal-file", default="src/results/eval/faz4_smoke_questions.jsonl")
-    safety_cmd.add_argument("--adversarial-file", default="src/results/eval/faz5_adversarial_questions.jsonl")
+    safety_cmd.add_argument("--normal-file", default=str(EVAL_DIR / "faz4_smoke_questions.jsonl"))
+    safety_cmd.add_argument("--adversarial-file", default=str(EVAL_DIR / "faz5_adversarial_questions.jsonl"))
     safety_cmd.add_argument("--persist-dir", default=str(DEFAULT_PERSIST_DIR))
     safety_cmd.add_argument("--collection", default=DEFAULT_COLLECTION)
     safety_cmd.add_argument("--initial-k", type=int, default=DEFAULT_INITIAL_K)

@@ -1,0 +1,10 @@
+﻿__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+.git/
+.gitignore
+.paddlex_cache/
+src/results/
+temp/

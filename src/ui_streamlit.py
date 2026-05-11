@@ -6,6 +6,8 @@ Faz 7: session izolasyonu + state kaliciligi.
 from __future__ import annotations
 
 import json
+import re
+import secrets
 import time
 import uuid
 from pathlib import Path
@@ -20,7 +22,7 @@ from config import (
     OCR_USE_GPU,
     OLLAMA_MODEL,
     RETRIEVAL_DEVICE,
-    RUNTIME_ROOT,
+    SESSION_ROOT,
 )
 from document_processor import process_document_to_markdown
 from generation_pipeline import ask_question
@@ -47,19 +49,32 @@ def _atomic_write_json(path: Path, payload: Dict[str, Any]) -> None:
 
 def _resolve_session_id() -> str:
     sid = str(st.query_params.get("sid", "")).strip()
-    if not sid:
+    # Yalnizca UUIDv4 formatini kabul et; degilse yeni oturum uret.
+    uuid_v4_re = re.compile(
+        r"^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$",
+        flags=re.IGNORECASE,
+    )
+    if not sid or not uuid_v4_re.match(sid):
         sid = str(uuid.uuid4())
         st.query_params["sid"] = sid
     return sid
 
 
+def _resolve_access_key() -> str:
+    key = str(st.query_params.get("sk", "")).strip()
+    if not key:
+        key = secrets.token_urlsafe(24)
+        st.query_params["sk"] = key
+    return key
+
+
 def _ensure_dirs(session_id: str) -> Dict[str, Path]:
-    runtime = RUNTIME_ROOT / "sessions" / session_id
+    runtime = SESSION_ROOT / session_id
     upload_dir = runtime / "uploads"
     ocr_md_dir = runtime / "ocr_md"
     chunk_dir = runtime / "chunks"
     vector_dir = runtime / "vector"
-    state_file = runtime / "state.json"
+    state_file = runtime / f"state_{session_id}.json"
     for p in (runtime, upload_dir, ocr_md_dir, chunk_dir, vector_dir):
         p.mkdir(parents=True, exist_ok=True)
     return {
@@ -110,6 +125,8 @@ def _default_state() -> Dict[str, Any]:
         "docs": [],
         "last_error": "",
         "model_name": OLLAMA_MODEL,
+        "session_id": "",
+        "access_key": "",
     }
 
 
@@ -125,15 +142,64 @@ def _load_state(state_file: Path) -> Dict[str, Any]:
     return base
 
 
-def _save_state(paths: Dict[str, Path]) -> None:
+def _save_state(paths: Dict[str, Path], session_id: str, access_key: str) -> None:
     payload = {
         "messages": st.session_state.get("messages", []),
         "ready": bool(st.session_state.get("ready", False)),
         "docs": st.session_state.get("docs", []),
         "last_error": st.session_state.get("last_error", ""),
         "model_name": OLLAMA_MODEL,
+        "session_id": session_id,
+        "access_key": access_key,
     }
     _atomic_write_json(paths["state_file"], payload)
+
+
+def _cleanup_session(runtime_root: Path) -> None:
+    resolved_root = SESSION_ROOT.resolve()
+    resolved_target = runtime_root.resolve()
+    # Guvenlik bariyeri: yalnizca SESSION_ROOT altindaki klasorler temizlenebilir.
+    if resolved_root not in resolved_target.parents and resolved_target != resolved_root:
+        raise RuntimeError("Guvenlik hatasi: Session dizini beklenen kok altinda degil.")
+    _clear_dir(resolved_target)
+    try:
+        resolved_target.rmdir()
+    except OSError:
+        pass
+
+
+def _validate_or_recover_session(session_id: str, access_key: str, paths: Dict[str, Path]) -> tuple[str, str, Dict[str, Any]]:
+    """Temel access control + refresh recovery.
+
+    - state dosyasinda access_key varsa query key ile esit olmali.
+    - eslesme yoksa yeni session olustur (manual sid degistirme korumasi).
+    """
+    loaded = _load_state(paths["state_file"])
+    stored_sid = str(loaded.get("session_id", "")).strip()
+    stored_key = str(loaded.get("access_key", "")).strip()
+
+    # Ilk olusum: state'e anahtar yazilacak.
+    if not stored_sid and not stored_key:
+        loaded["session_id"] = session_id
+        loaded["access_key"] = access_key
+        return session_id, access_key, loaded
+
+    # Recovery: aynı session + key ile devam.
+    if stored_sid == session_id and stored_key and stored_key == access_key:
+        return session_id, access_key, loaded
+
+    # Yetkisiz/manuel manipule sid denemesi -> yeni izole session.
+    new_sid = str(uuid.uuid4())
+    new_key = secrets.token_urlsafe(24)
+    st.query_params["sid"] = new_sid
+    st.query_params["sk"] = new_key
+    new_paths = _ensure_dirs(new_sid)
+    new_state = _default_state()
+    new_state["session_id"] = new_sid
+    new_state["access_key"] = new_key
+    _atomic_write_json(new_paths["state_file"], new_state)
+    st.warning("Oturum kimligi dogrulanamadi. Guvenlik nedeniyle yeni izole oturum olusturuldu.")
+    return new_sid, new_key, new_state
 
 
 def _prepare_documents(
@@ -207,24 +273,43 @@ def main() -> None:
     st.set_page_config(page_title="Belge Asistani", page_icon=":page_facing_up:", layout="centered")
 
     session_id = _resolve_session_id()
+    access_key = _resolve_access_key()
+    paths = _ensure_dirs(session_id)
+    session_id, access_key, recovered_state = _validate_or_recover_session(
+        session_id=session_id,
+        access_key=access_key,
+        paths=paths,
+    )
     paths = _ensure_dirs(session_id)
 
     if "bootstrapped" not in st.session_state:
-        state = _load_state(paths["state_file"])
+        state = recovered_state if recovered_state else _load_state(paths["state_file"])
         st.session_state.messages = list(state.get("messages", []))
         st.session_state.ready = bool(state.get("ready", False))
         st.session_state.docs = list(state.get("docs", []))
         st.session_state.last_error = str(state.get("last_error", ""))
+        st.session_state.session_id = session_id
+        st.session_state.access_key = access_key
         st.session_state.bootstrapped = True
     else:
         st.session_state.setdefault("messages", [])
         st.session_state.setdefault("ready", False)
         st.session_state.setdefault("docs", [])
         st.session_state.setdefault("last_error", "")
+        st.session_state.setdefault("session_id", session_id)
+        st.session_state.setdefault("access_key", access_key)
 
     st.title("Belge Asistani")
     st.caption("1) PDF/resim yukle  2) Belgeleri Hazirla  3) Soru sor")
     st.caption(f"Oturum: `{session_id}`")
+    if st.button("Oturumu Kapat", use_container_width=False):
+        _cleanup_session(paths["runtime"])
+        st.session_state.clear()
+        fresh_sid = str(uuid.uuid4())
+        fresh_key = secrets.token_urlsafe(24)
+        st.query_params["sid"] = fresh_sid
+        st.query_params["sk"] = fresh_key
+        st.rerun()
 
     uploaded_files = st.file_uploader(
         "Belgeleri yukle",
@@ -270,7 +355,7 @@ def main() -> None:
                 st.caption(f"OCR cihazi: {'gpu' if result.get('ocr_gpu_enabled') else 'cpu'}")
                 for f in result.get("failed", []):
                     st.caption(f"{f['file']}: {f['error']}")
-            _save_state(paths)
+            _save_state(paths, session_id=session_id, access_key=access_key)
 
     if st.session_state.docs:
         with st.expander("Aktif dokumanlar", expanded=False):
@@ -285,7 +370,7 @@ def main() -> None:
     prompt = st.chat_input("Belgeyle ilgili sorunu yaz...")
     if prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
-        _save_state(paths)
+        _save_state(paths, session_id=session_id, access_key=access_key)
         with st.chat_message("user"):
             st.markdown(prompt)
 
@@ -296,7 +381,7 @@ def main() -> None:
                     ans += f"\n\nSon hata: {st.session_state.last_error}"
                 st.markdown(ans)
                 st.session_state.messages.append({"role": "assistant", "content": ans})
-                _save_state(paths)
+                _save_state(paths, session_id=session_id, access_key=access_key)
             else:
                 with st.spinner("Cevap uretiliyor..."):
                     try:
@@ -318,12 +403,12 @@ def main() -> None:
                         st.session_state.messages.append(
                             {"role": "assistant", "content": answer, "sources": sources}
                         )
-                        _save_state(paths)
+                        _save_state(paths, session_id=session_id, access_key=access_key)
                     except Exception as exc:
                         err = f"Bir hata oldu: {exc}"
                         st.error(err)
                         st.session_state.messages.append({"role": "assistant", "content": err})
-                        _save_state(paths)
+                        _save_state(paths, session_id=session_id, access_key=access_key)
 
 
 if __name__ == "__main__":

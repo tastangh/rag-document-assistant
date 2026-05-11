@@ -1,0 +1,15 @@
+{
+  "model_name": "newmindai/Mursit-Large-TR-Retrieval",
+  "embedding_dim": 1024,
+  "chunk_count": 8,
+  "created_at": "2026-05-11T20:16:07.023985+00:00",
+  "source_docs": [
+    "Mehmet-Taştan-CV-EN (1).md"
+  ],
+  "device": "cuda",
+  "dtype": "float32",
+  "artifacts": {
+    "chunks_jsonl": "chunks.jsonl",
+    "embeddings_npy": "embeddings.npy"
+  }
+}

@@ -44,9 +44,14 @@ DEFAULT_PERSIST_DIR = VECTOR_PERSIST_DIR
 DEFAULT_COLLECTION = COLLECTION_NAME
 DEFAULT_EMBED_MODEL = EMBED_MODEL_NAME
 DEFAULT_RERANK_MODEL = RERANK_MODEL_NAME
-DEFAULT_INITIAL_K = 16
+DEFAULT_INITIAL_K = 24
 DEFAULT_FINAL_K = 5
 DEFAULT_DEVICE = "cuda"
+EXPECTED_MURSIT_DIM = 1024
+DEFAULT_SEARCH_TYPE = "hybrid"
+DEFAULT_RERANK_POOL_K = 16
+_EMBEDDER_CACHE: Dict[Tuple[str, str], Any] = {}
+_RERANKER_CACHE: Dict[Tuple[str, str], Any] = {}
 
 
 @dataclass
@@ -67,7 +72,7 @@ class RetrievalCandidate:
 
 def _get_chromadb() -> Any:
     if _chromadb is None:
-        raise RuntimeError("chromadb import edilemedi. requirements.txt bagimliliklarini kurun.")
+        raise RuntimeError("chromadb import edilemedi. Poetry bagimliliklarini kurun: `poetry install`.")
     return _chromadb
 
 
@@ -78,7 +83,7 @@ def _get_sentence_transformer_class() -> Any:
         return SentenceTransformer
     except Exception as exc:  # pragma: no cover
         raise RuntimeError(
-            "sentence-transformers import edilemedi. requirements.txt bagimliliklarini kurun."
+            "sentence-transformers import edilemedi. Poetry bagimliliklarini kurun: `poetry install`."
         ) from exc
 
 
@@ -89,6 +94,8 @@ def _get_cross_encoder_class() -> Any:
 
 
 def _resolve_device(device_arg: str) -> str:
+    if device_arg == "gpu":
+        device_arg = "cuda"
     if device_arg != "auto":
         return device_arg
     try:
@@ -196,9 +203,34 @@ def build_vector_index(
 ) -> Dict[str, Any]:
     chunks, embeddings, manifest = _load_artifacts(artifacts_dir=artifacts_dir)
     persist_dir.mkdir(parents=True, exist_ok=True)
+    requested_model = str(manifest.get("model_name", DEFAULT_EMBED_MODEL))
+    requested_dim = int(manifest.get("embedding_dim", int(embeddings.shape[1])))
+
+    if requested_model == "newmindai/Mursit-Large-TR-Retrieval" and requested_dim != EXPECTED_MURSIT_DIM:
+        raise RuntimeError(
+            f"Mursit modeli icin embedding boyutu uyumsuz. Beklenen={EXPECTED_MURSIT_DIM}, gelen={requested_dim}. "
+            "Chunk/embedding artefaktlarini yeni model ile tekrar uretin."
+        )
 
     chroma = _get_chromadb()
     client = chroma.PersistentClient(path=str(persist_dir))
+    old_manifest = persist_dir / f"{collection_name}_index_manifest.json"
+    if old_manifest.exists():
+        try:
+            old = json.loads(old_manifest.read_text(encoding="utf-8"))
+            old_model = str(old.get("model_name", ""))
+            old_dim = int(old.get("embedding_dim", -1))
+            if old_model != requested_model or old_dim != requested_dim:
+                LOGGER.warning(
+                    "Index model/dim degisti. Re-index yapiliyor | old=%s/%s new=%s/%s",
+                    old_model,
+                    old_dim,
+                    requested_model,
+                    requested_dim,
+                )
+        except Exception:
+            LOGGER.warning("Eski index manifest okunamadi; temiz re-index devam ediyor.")
+
     deleted = _delete_collection_if_exists(client=client, collection_name=collection_name)
     if deleted:
         LOGGER.info("Mevcut collection silindi: %s", collection_name)
@@ -224,12 +256,18 @@ def build_vector_index(
         documents = [str(row.get("text", "")) for row in chunk_batch]
         metadatas: List[Dict[str, Any]] = []
         for row in chunk_batch:
+            section_title = str(row.get("section_title", row.get("section", "ROOT")))
+            page_no = int(row.get("page_no", row.get("page", 0)))
+            is_table = bool(row.get("is_table", str(row.get("chunk_type", "text")) == "table"))
             metadatas.append(
                 {
                     "chunk_id": str(row["chunk_id"]),
                     "doc_id": str(row.get("doc_id", "")),
-                    "page": int(row.get("page", 0)),
-                    "section": str(row.get("section", "ROOT")),
+                    "page": page_no,
+                    "page_no": page_no,
+                    "section": section_title,
+                    "section_title": section_title,
+                    "is_table": is_table,
                     "chunk_type": str(row.get("chunk_type", "text")),
                     "char_len": int(row.get("char_len", len(str(row.get("text", ""))))),
                 }
@@ -404,7 +442,25 @@ def _embed_question(question: str, model_name: str, device: str) -> np.ndarray:
     if not question.strip():
         raise ValueError("Soru bos olamaz.")
     sentence_transformer_cls = _get_sentence_transformer_class()
-    model = sentence_transformer_cls(model_name_or_path=model_name, device=device)
+    cache_key = (model_name, device)
+    model = _EMBEDDER_CACHE.get(cache_key)
+    if model is None:
+        try:
+            model = sentence_transformer_cls(model_name_or_path=model_name, device=device)
+            _EMBEDDER_CACHE[cache_key] = model
+        except Exception as exc:
+            msg = str(exc)
+            network_hints = ("Connection", "ReadTimeout", "NameResolutionError", "Temporary failure", "HTTPSConnectionPool")
+            if any(h in msg for h in network_hints):
+                raise RuntimeError(
+                    "Embedding modeli indirilemedi/yuklenemedi. HuggingFace ag erisimi yok olabilir. "
+                    "Air-gapped ortam icin modeli onceden local cache/mirror'a alin."
+                ) from exc
+            raise
+        LOGGER.info("Query embedding modeli cache'e alindi | model=%s | device=%s", model_name, device)
+    tokenizer = getattr(model, "tokenizer", None)
+    tok_name = tokenizer.__class__.__name__ if tokenizer is not None else "unknown"
+    LOGGER.info("Query embedding modeli hazir | model=%s | device=%s | tokenizer=%s", model_name, device, tok_name)
     vector = model.encode(
         [question],
         normalize_embeddings=True,
@@ -423,8 +479,13 @@ def _rerank_candidates(
     if not candidates:
         return candidates, False
     try:
-        cross_encoder_cls = _get_cross_encoder_class()
-        reranker = cross_encoder_cls(reranker_model, device=device)
+        cache_key = (reranker_model, device)
+        reranker = _RERANKER_CACHE.get(cache_key)
+        if reranker is None:
+            cross_encoder_cls = _get_cross_encoder_class()
+            reranker = cross_encoder_cls(reranker_model, device=device)
+            _RERANKER_CACHE[cache_key] = reranker
+            LOGGER.info("Cross-encoder cache'e alindi | model=%s | device=%s", reranker_model, device)
         pairs = [(question, row.text) for row in candidates]
         scores = reranker.predict(
             pairs,
@@ -460,6 +521,8 @@ def retrieve_contexts(
     reranker_model: str = DEFAULT_RERANK_MODEL,
     disable_rerank: bool = False,
     enable_hybrid: bool = True,
+    search_type: str = DEFAULT_SEARCH_TYPE,
+    rerank_pool_k: int = DEFAULT_RERANK_POOL_K,
 ) -> List[Dict[str, Any]]:
     if initial_k <= 0 or final_k <= 0:
         raise ValueError("initial_k ve final_k pozitif olmali.")
@@ -517,9 +580,9 @@ def retrieve_contexts(
     # Chroma cosine distance: dusuk mesafe daha iyi. Vector sirasi yuksek skora cevrildi.
     vector_candidates = sorted(vector_candidates, key=lambda x: x.vector_distance)
     candidates: List[RetrievalCandidate] = vector_candidates
-
     hybrid_applied = False
-    if enable_hybrid:
+    sparse_candidates: List[RetrievalCandidate] = []
+    if search_type in {"hybrid", "keyword"}:
         try:
             sparse_candidates = _get_sparse_candidates(
                 collection=collection,
@@ -527,20 +590,32 @@ def retrieve_contexts(
                 initial_k=initial_k,
                 where_filter=where_filter,
             )
-            if sparse_candidates:
-                candidates = _rrf_fuse(
-                    vector_candidates=vector_candidates,
-                    sparse_candidates=sparse_candidates,
-                )
-                hybrid_applied = True
         except Exception as exc:
-            LOGGER.warning("Sparse/BM25 asamasi hata verdi, dense ile devam ediliyor: %s", exc)
+            LOGGER.warning("Sparse/BM25 asamasi hata verdi: %s", exc)
+
+    if search_type == "vector":
+        candidates = vector_candidates
+    elif search_type == "keyword":
+        candidates = sparse_candidates
+    elif search_type == "hybrid":
+        if enable_hybrid and sparse_candidates:
+            candidates = _rrf_fuse(
+                vector_candidates=vector_candidates,
+                sparse_candidates=sparse_candidates,
+            )
+            hybrid_applied = True
+        else:
+            candidates = vector_candidates
+    else:
+        raise ValueError("search_type yalnizca 'hybrid', 'vector' veya 'keyword' olabilir.")
 
     rerank_applied = False
     if not disable_rerank and len(candidates) > 1:
+        rerank_pool = max(1, min(rerank_pool_k, len(candidates)))
+        rerank_input = candidates[:rerank_pool]
         candidates, rerank_applied = _rerank_candidates(
             question=question,
-            candidates=candidates,
+            candidates=rerank_input,
             reranker_model=reranker_model,
             device=resolved_device,
         )
@@ -560,6 +635,7 @@ def retrieve_contexts(
             "sparse_score": row.sparse_score,
             "rrf_score": row.rrf_score,
             "hybrid_applied": hybrid_applied,
+            "search_type": search_type,
             "rerank_score": row.rerank_score,
             "rerank_applied": rerank_applied,
             "model_name": model_name,
@@ -649,6 +725,8 @@ def evaluate_retrieval(
     reranker_model: str,
     disable_rerank: bool,
     disable_hybrid: bool,
+    search_type: str,
+    rerank_pool_k: int,
     embed_model_name: Optional[str] = None,
     doc_id: Optional[str] = None,
     chunk_type: Optional[str] = None,
@@ -683,6 +761,8 @@ def evaluate_retrieval(
             reranker_model=reranker_model,
             disable_rerank=disable_rerank,
             enable_hybrid=not (disable_hybrid or bool(row.get("disable_hybrid", False))),
+            search_type=str(row.get("search_type", search_type)),
+            rerank_pool_k=rerank_pool_k,
         )
         predictions.append(result)
         labels.append(row)
@@ -694,6 +774,8 @@ def evaluate_retrieval(
         "final_k": final_k,
         "disable_rerank": disable_rerank,
         "disable_hybrid": disable_hybrid,
+        "search_type": search_type,
+        "rerank_pool_k": rerank_pool_k,
         "metrics": metrics,
     }
 
@@ -716,7 +798,7 @@ def _add_shared_query_args(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--device",
-        choices=["auto", "cpu", "cuda", "mps"],
+        choices=["auto", "cpu", "cuda", "mps", "gpu"],
         default=DEFAULT_DEVICE,
         help=f"Sorgu embedding cihazi (varsayilan: {DEFAULT_DEVICE})",
     )
@@ -757,6 +839,18 @@ def _add_shared_query_args(parser: argparse.ArgumentParser) -> None:
         "--disable-hybrid",
         action="store_true",
         help="Dense+sparse hibrit retrieval'i kapatir (yalnizca dense).",
+    )
+    parser.add_argument(
+        "--search-type",
+        choices=["hybrid", "vector", "keyword"],
+        default=DEFAULT_SEARCH_TYPE,
+        help="Arama tipi: hybrid (RRF), vector veya keyword (BM25).",
+    )
+    parser.add_argument(
+        "--rerank-pool-k",
+        type=int,
+        default=DEFAULT_RERANK_POOL_K,
+        help=f"Re-ranker'a gidecek aday havuzu (varsayilan: {DEFAULT_RERANK_POOL_K})",
     )
 
 
@@ -831,6 +925,8 @@ def main() -> None:
             reranker_model=args.reranker_model,
             disable_rerank=args.disable_rerank,
             enable_hybrid=not args.disable_hybrid,
+            search_type=args.search_type,
+            rerank_pool_k=args.rerank_pool_k,
         )
         print(
             json.dumps(
@@ -856,6 +952,8 @@ def main() -> None:
             reranker_model=args.reranker_model,
             disable_rerank=args.disable_rerank,
             disable_hybrid=args.disable_hybrid,
+            search_type=args.search_type,
+            rerank_pool_k=args.rerank_pool_k,
             embed_model_name=args.model,
             doc_id=args.doc_id,
             chunk_type=args.chunk_type,

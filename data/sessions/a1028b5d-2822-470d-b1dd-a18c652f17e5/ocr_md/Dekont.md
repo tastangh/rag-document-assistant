@@ -1,0 +1,63 @@
+## Sayfa 1
+
+DEKONT
+EFT BANKALAR ARASI HESABA HAVALE
+GÖNDERİCİ BİLGİLERİ
+ALICI BİLGİLERİ
+Düzenleyen Şube
+: 7777 - AKBANK DİREKT MOBİL CEP
+Borçlu Hesap No
+: 888-0681-0281649
+Alacaklı Hesap No
+: TR19 0001 0025 5791 2950 1750 01
+Müşteri No
+: 0035805005
+Karşı Şube
+:   -
+VKN/Vergi Dairesi
+: ***********
+VKN/Vergi Dairesi
+:
+Adı Soyadı/Unvan
+: MEHMET TAŞTAN
+Adı Soyadı/Unvan
+: Ayşe Nazlıcan Yılmaz
+Adres
+: ***** *** **************** ******* ***** ******* ****
+******
+Adres
+:
+TR960004600681888000281649
+Mehmet Taştan Paper id 317 acs katılım ücreti
+TUTAR BİLGİLERİ
+MEVDUAT
+4.000,00  TL
+0,00  TL
+ŞCH
+0,00  TL
+4.000,00  TL
+TOPLAM
+4.000,00 TL
+YALNIZ  DÖRTBİN  TL
+İşlem Tarihi/Saati
+: 16.04.2026 14:52:05
+MÜŞTERİ İMZASI
+Valör
+: 16.04.2026
+Referans
+:
+İşlemi Yapan
+: KENDISI
+İşlemi Yapan Ad-Soyad
+: MEHMET TAŞTAN
+İşlemi Yapan TCKN
+: ***********
+35805005 / 888301 /
+Akbank T.A.Ş.
+Vergi Dairesi: Büyük Mükellefler
+YETKİLİ İMZASI
+Genel Müdürlük: Sabancı Center 4.Levent 34330
+Vergi No: 0150015264
+İstanbul
+www.akbank.com
+Mersis No: 0015001526400497

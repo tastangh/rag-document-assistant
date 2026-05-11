@@ -20,23 +20,22 @@ from typing import Any, Dict, List, Sequence, Tuple
 import numpy as np
 
 from config import CHUNK_ARTIFACTS_DIR, EMBED_MODEL_NAME, RESULTS_DIR
+from langchain_text_splitters import MarkdownHeaderTextSplitter
 
 try:
     from sentence_transformers import SentenceTransformer
 except Exception as exc:  # pragma: no cover
     raise RuntimeError(
-        "sentence-transformers import edilemedi. requirements.txt bagimliliklarini kurun."
+        "sentence-transformers import edilemedi. Poetry bagimliliklarini kurun: `poetry install`."
     ) from exc
 
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s")
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
+EXPECTED_MURSIT_DIM = 1024
 
 PAGE_HEADER_RE = re.compile(r"^##\s+Sayfa\s+(\d+)\s*$", flags=re.IGNORECASE | re.MULTILINE)
 HEADING_RE = re.compile(r"^(#{1,6})\s+(.+?)\s*$")
-SENTENCE_SPLIT_RE = re.compile(r"(?<=[.!?])\s+")
-
-
 @dataclass
 class Block:
     doc_id: str
@@ -50,9 +49,10 @@ class Block:
 class ChunkRecord:
     chunk_id: str
     doc_id: str
-    page: int
-    section: str
-    chunk_type: str  # text | table
+    page_no: int
+    section_title: str
+    is_table: bool
+    chunk_type: str  # text | table (geri uyumluluk)
     text: str
     char_len: int
 
@@ -179,59 +179,98 @@ def is_noisy_text(text: str, min_chunk_size: int) -> bool:
     return False
 
 
-def semantic_split_text_block(text: str, max_chunk_chars: int, min_chunk_size: int) -> List[str]:
+def semantic_split_text_block(text: str, min_chunk_size: int) -> List[str]:
+    normalized = normalize_chunk_text(text)
+    if not normalized:
+        return []
+    if is_noisy_text(normalized, min_chunk_size=min_chunk_size):
+        return []
+    return [normalized]
+
+
+def _split_long_text_with_dynamic_overlap(
+    text: str,
+    target_chunk_chars: int,
+    overlap_chars: int,
+    min_chunk_size: int,
+) -> List[str]:
     normalized = normalize_chunk_text(text)
     if not normalized:
         return []
 
-    if len(normalized) <= max_chunk_chars:
-        return [normalized] if not is_noisy_text(normalized, min_chunk_size=min_chunk_size) else []
-
-    sentences = [s.strip() for s in SENTENCE_SPLIT_RE.split(normalized) if s.strip()]
-    if not sentences:
-        return []
+    # Paragraf sinirlari varsa once onlari koru.
+    paragraphs = [p.strip() for p in re.split(r"\n{2,}", text) if p.strip()]
+    if not paragraphs:
+        paragraphs = [normalized]
 
     chunks: List[str] = []
-    current: List[str] = []
-    current_len = 0
-
-    for sentence in sentences:
-        s_len = len(sentence)
-
-        if s_len > max_chunk_chars:
-            if current:
-                merged = normalize_chunk_text(" ".join(current))
-                if not is_noisy_text(merged, min_chunk_size=min_chunk_size):
-                    chunks.append(merged)
-                current = []
-                current_len = 0
-
-            for i in range(0, s_len, max_chunk_chars):
-                piece = sentence[i : i + max_chunk_chars].strip()
-                if piece and not is_noisy_text(piece, min_chunk_size=min_chunk_size):
-                    chunks.append(piece)
+    current = ""
+    for para in paragraphs:
+        candidate = para if not current else f"{current}\n\n{para}"
+        if len(candidate) <= target_chunk_chars:
+            current = candidate
             continue
 
-        projected = current_len + (1 if current else 0) + s_len
-        if projected > max_chunk_chars and current:
-            merged = normalize_chunk_text(" ".join(current))
-            if not is_noisy_text(merged, min_chunk_size=min_chunk_size):
-                chunks.append(merged)
-            current = [sentence]
-            current_len = s_len
+        if current:
+            cur_norm = normalize_chunk_text(current)
+            if not is_noisy_text(cur_norm, min_chunk_size=min_chunk_size):
+                chunks.append(cur_norm)
+            # Dinamik overlap: onceki chunk'in son overlap_chars karakterini yeni chunk'a tasiyoruz.
+            tail = cur_norm[-overlap_chars:] if overlap_chars > 0 else ""
+            current = f"{tail} {para}".strip() if tail else para
         else:
-            current.append(sentence)
-            current_len = projected
+            # Tek paragraf cok uzunsa sert bolme.
+            step = max(target_chunk_chars - overlap_chars, max(min_chunk_size, 64))
+            for i in range(0, len(para), step):
+                piece = normalize_chunk_text(para[i : i + target_chunk_chars])
+                if piece and not is_noisy_text(piece, min_chunk_size=min_chunk_size):
+                    chunks.append(piece)
+            current = ""
 
     if current:
-        merged = normalize_chunk_text(" ".join(current))
-        if not is_noisy_text(merged, min_chunk_size=min_chunk_size):
-            chunks.append(merged)
-
+        cur_norm = normalize_chunk_text(current)
+        if not is_noisy_text(cur_norm, min_chunk_size=min_chunk_size):
+            chunks.append(cur_norm)
     return chunks
 
 
-def build_chunks_for_document(doc_path: Path, max_chunk_chars: int, min_chunk_size: int) -> List[ChunkRecord]:
+def split_page_semantic(page_text: str) -> List[Tuple[str, str]]:
+    """Sayfa metnini Markdown baslik hiyerarsisine gore boler."""
+    headers_to_split_on = [
+        ("#", "h1"),
+        ("##", "h2"),
+        ("###", "h3"),
+    ]
+    splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers_to_split_on, strip_headers=False)
+    docs = splitter.split_text(page_text)
+    parts: List[Tuple[str, str]] = []
+    for d in docs:
+        content = normalize_chunk_text(d.page_content)
+        if not content:
+            continue
+        md = d.metadata or {}
+        section = str(md.get("h3") or md.get("h2") or md.get("h1") or "ROOT").strip() or "ROOT"
+        parts.append((section, content))
+    if not parts:
+        fallback = normalize_chunk_text(page_text)
+        return [("ROOT", fallback)] if fallback else []
+    return parts
+
+
+def _inject_chunk_context(chunk: ChunkRecord) -> str:
+    return (
+        f"[Dokuman: {chunk.doc_id} | Sayfa: {chunk.page_no} | "
+        f"Bolum: {chunk.section_title} | Tablo: {str(chunk.is_table).lower()}]\n\n"
+        f"{chunk.text}"
+    )
+
+
+def build_chunks_for_document(
+    doc_path: Path,
+    target_chunk_chars: int,
+    overlap_chars: int,
+    min_chunk_size: int,
+) -> List[ChunkRecord]:
     text = doc_path.read_text(encoding="utf-8")
     pages = split_pages(text)
     doc_id = doc_path.stem
@@ -240,7 +279,11 @@ def build_chunks_for_document(doc_path: Path, max_chunk_chars: int, min_chunk_si
     counter = 1
 
     for page_num, page_text in pages:
+        semantic_sections = split_page_semantic(page_text)
         blocks = parse_blocks(doc_id=doc_id, page_num=page_num, page_text=page_text)
+        section_texts: Dict[str, List[str]] = {}
+        for s, t in semantic_sections:
+            section_texts.setdefault(s, []).append(t)
 
         for block in blocks:
             if block.block_type == "heading":
@@ -254,8 +297,9 @@ def build_chunks_for_document(doc_path: Path, max_chunk_chars: int, min_chunk_si
                     ChunkRecord(
                         chunk_id=f"{doc_id}::p{page_num}::c{counter}",
                         doc_id=doc_id,
-                        page=page_num,
-                        section=block.section,
+                        page_no=page_num,
+                        section_title=block.section,
+                        is_table=True,
                         chunk_type="table",
                         text=normalized,
                         char_len=len(normalized),
@@ -264,19 +308,23 @@ def build_chunks_for_document(doc_path: Path, max_chunk_chars: int, min_chunk_si
                 counter += 1
                 continue
 
-            # text block
-            parts = semantic_split_text_block(
-                text=block.text,
-                max_chunk_chars=max_chunk_chars,
+        # Text chunking: baslik/bolum bazli semantik birlestirme + dinamik overlap.
+        for section_title, section_parts in section_texts.items():
+            section_text = "\n\n".join(section_parts).strip()
+            dynamic_parts = _split_long_text_with_dynamic_overlap(
+                text=section_text,
+                target_chunk_chars=target_chunk_chars,
+                overlap_chars=overlap_chars,
                 min_chunk_size=min_chunk_size,
             )
-            for part in parts:
+            for part in dynamic_parts:
                 chunks.append(
                     ChunkRecord(
                         chunk_id=f"{doc_id}::p{page_num}::c{counter}",
                         doc_id=doc_id,
-                        page=page_num,
-                        section=block.section,
+                        page_no=page_num,
+                        section_title=section_title,
+                        is_table=False,
                         chunk_type="text",
                         text=part,
                         char_len=len(part),
@@ -288,6 +336,8 @@ def build_chunks_for_document(doc_path: Path, max_chunk_chars: int, min_chunk_si
 
 
 def _resolve_device(device_arg: str) -> str:
+    if device_arg == "gpu":
+        device_arg = "cuda"
     if device_arg != "auto":
         return device_arg
     try:
@@ -327,12 +377,22 @@ def embed_texts(
         try:
             model = SentenceTransformer(candidate, device=device)
             selected_model = candidate
+            tokenizer = getattr(model, "tokenizer", None)
+            tok_name = tokenizer.__class__.__name__ if tokenizer is not None else "unknown"
+            logger.info("Embedding modeli yuklendi | model=%s | device=%s | tokenizer=%s", candidate, device, tok_name)
             break
         except Exception as exc:
             last_exc = exc
-            LOGGER.warning("Embedding modeli yuklenemedi: %s | hata=%s", candidate, exc)
+            logger.warning("Embedding modeli yuklenemedi: %s | hata=%s", candidate, exc)
 
     if model is None:
+        msg = str(last_exc) if last_exc else ""
+        network_hints = ("Connection", "ReadTimeout", "NameResolutionError", "Temporary failure", "HTTPSConnectionPool")
+        if any(h in msg for h in network_hints):
+            raise RuntimeError(
+                "Embedding modeli indirilemedi. HuggingFace ag erisimi yok veya kesintili. "
+                "Air-gapped ortam icin modeli onceden local cache/mirror'a alin."
+            ) from last_exc
         raise RuntimeError("Embedding modeli yuklenemedi (tum fallbackler denendi).") from last_exc
 
     vectors = model.encode(
@@ -343,6 +403,10 @@ def embed_texts(
         convert_to_numpy=True,
     )
     vectors = np.asarray(vectors, dtype=np.float32)
+    if selected_model == "newmindai/Mursit-Large-TR-Retrieval" and vectors.ndim == 2 and vectors.shape[1] != EXPECTED_MURSIT_DIM:
+        raise RuntimeError(
+            f"Mursit embedding boyutu beklenenle uyusmuyor. Beklenen={EXPECTED_MURSIT_DIM}, gelen={vectors.shape[1]}"
+        )
     return vectors, selected_model, device
 
 
@@ -362,14 +426,17 @@ def write_artifacts(
 
     with chunks_path.open("w", encoding="utf-8") as f:
         for row in chunks:
+            contextual_text = _inject_chunk_context(row)
             payload = {
                 "chunk_id": row.chunk_id,
                 "doc_id": row.doc_id,
-                "page": row.page,
-                "page_no": row.page,
-                "section": row.section,
+                "page": row.page_no,
+                "page_no": row.page_no,
+                "section": row.section_title,
+                "section_title": row.section_title,
+                "is_table": row.is_table,
                 "chunk_type": row.chunk_type,
-                "text": row.text,
+                "text": contextual_text,
                 "char_len": row.char_len,
             }
             f.write(json.dumps(payload, ensure_ascii=False) + "\n")
@@ -406,9 +473,9 @@ def run_pipeline(
     if not md_files:
         raise FileNotFoundError(f"Girdi klasorunde .md dosyasi bulunamadi: {input_dir}")
 
-    # Faz 2: overlap parametresi geri uyumluluk için tutuluyor, ancak semantik chunking'de kullanılmıyor.
-    _ = chunk_overlap
-    max_chunk_chars = chunk_size
+    # Faz 2: boyut/overlap artik semantik bolutlemede dinamik olarak kullaniliyor.
+    target_chunk_chars = max(chunk_size, min_chunk_size + 64)
+    overlap_chars = min(max(chunk_overlap, 0), int(target_chunk_chars * 0.35))
 
     all_chunks: List[ChunkRecord] = []
     per_doc_counts: Dict[str, int] = {}
@@ -416,16 +483,17 @@ def run_pipeline(
     for doc_path in md_files:
         doc_chunks = build_chunks_for_document(
             doc_path=doc_path,
-            max_chunk_chars=max_chunk_chars,
+            target_chunk_chars=target_chunk_chars,
+            overlap_chars=overlap_chars,
             min_chunk_size=min_chunk_size,
         )
         if not doc_chunks:
-            LOGGER.warning("Belgeden gecerli chunk uretilemedi: %s", doc_path.name)
+            logger.warning("Belgeden gecerli chunk uretilemedi: %s", doc_path.name)
             continue
 
         all_chunks.extend(doc_chunks)
         per_doc_counts[doc_path.name] = len(doc_chunks)
-        LOGGER.info("Chunk uretildi: %s | %s chunk", doc_path.name, len(doc_chunks))
+        logger.info("Chunk uretildi: %s | %s chunk", doc_path.name, len(doc_chunks))
 
     if not all_chunks:
         raise RuntimeError("Hicbir dokumandan chunk uretilemedi.")
@@ -471,7 +539,7 @@ def run_pipeline(
         "per_doc_chunk_counts": per_doc_counts,
     }
 
-    LOGGER.info(
+    logger.info(
         "Faz 2 tamamlandi | doc=%s | chunk=%s | dim=%s | model=%s | device=%s",
         summary["doc_count"],
         summary["chunk_count"],
@@ -506,7 +574,7 @@ def build_arg_parser() -> argparse.ArgumentParser:
         help="Geri uyumluluk parametresi (semantik chunking'de aktif kullanilmaz)",
     )
     parser.add_argument("--min-chunk-size", type=int, default=120, help="Minimum chunk uzunlugu")
-    parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda", "mps"])
+    parser.add_argument("--device", default="auto", choices=["auto", "cpu", "cuda", "mps", "gpu"])
     parser.add_argument("--batch-size", type=int, default=32)
 
     return parser
@@ -521,6 +589,7 @@ def main() -> None:
     if args.chunk_overlap >= args.chunk_size:
         raise ValueError("chunk_overlap, chunk_size'dan kucuk olmali")
 
+    resolved_device = "cuda" if args.device == "gpu" else args.device
     summary = run_pipeline(
         input_dir=Path(args.input_dir),
         output_dir=Path(args.output_dir),
@@ -528,7 +597,7 @@ def main() -> None:
         chunk_size=args.chunk_size,
         chunk_overlap=args.chunk_overlap,
         min_chunk_size=args.min_chunk_size,
-        device=args.device,
+        device=resolved_device,
         batch_size=args.batch_size,
     )
 

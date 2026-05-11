@@ -19,6 +19,7 @@ import cv2
 import fitz  # PyMuPDF
 import numpy as np
 from bs4 import BeautifulSoup
+from config import OCR_CACHE_DIR
 
 PaddleOCR = None
 PPStructureV3 = None
@@ -29,7 +30,7 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",
 )
-LOGGER = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 # Reduce transformers warning spam triggered by PaddleX/PaddleOCR imports.
 os.environ.setdefault("TRANSFORMERS_VERBOSITY", "error")
@@ -69,10 +70,8 @@ class DocumentProcessor:
     def _init_engines(self) -> None:
         """PP-StructureV3 ve fallback OCR motorlarını başlat."""
         device = "gpu" if self.use_gpu else "cpu"
-        project_root = Path(__file__).resolve().parent
-        local_paddlex_cache = project_root / ".paddlex_cache"
-        os.environ.setdefault("PADDLE_PDX_CACHE_HOME", str(local_paddlex_cache))
-        local_paddlex_cache.mkdir(parents=True, exist_ok=True)
+        os.environ.setdefault("PADDLE_PDX_CACHE_HOME", str(OCR_CACHE_DIR))
+        OCR_CACHE_DIR.mkdir(parents=True, exist_ok=True)
         try:
             numpy_major = int(np.__version__.split(".", maxsplit=1)[0])
         except Exception:
@@ -123,10 +122,10 @@ class DocumentProcessor:
                     use_textline_orientation=True,
                     enable_mkldnn=False,
                 )
-                LOGGER.info("PP-StructureV3 başarıyla başlatıldı (lang=tr, device=%s).", device)
+                logger.info("PP-StructureV3 başarıyla başlatıldı (lang=tr, device=%s).", device)
             except Exception as exc:
                 structure_errors.append(f"PPStructureV3 init hatası: {exc}")
-                LOGGER.warning("PPStructureV3 başlatılamadı, PPStructure fallback denenecek.")
+                logger.warning("PPStructureV3 başlatılamadı, PPStructure fallback denenecek.")
 
         if self.structure_v3 is None and PPStructure is not None:
             try:
@@ -139,7 +138,7 @@ class DocumentProcessor:
                     lang="tr",
                     return_ocr_result_in_table=True,
                 )
-                LOGGER.info("Legacy PPStructure başlatıldı (lang=tr).")
+                logger.info("Legacy PPStructure başlatıldı (lang=tr).")
             except Exception as exc:
                 structure_errors.append(f"PPStructure init hatası: {exc}")
 
@@ -163,10 +162,10 @@ class DocumentProcessor:
                 fallback_errors.append(f"{lang}: {exc}")
 
         if self.ocr_tr is not None or self.ocr_en is not None:
-            LOGGER.info("Fallback OCR motorları başlatıldı (tr/en, en az biri aktif).")
+            logger.info("Fallback OCR motorları başlatıldı (tr/en, en az biri aktif).")
         else:
             # PP-Structure aktifse fallback olmadan da devam edebiliriz.
-            LOGGER.warning(
+            logger.warning(
                 "Fallback OCR motorları başlatılamadı; yalnızca layout pipeline kullanılacak. Ayrıntı: %s",
                 " | ".join(fallback_errors) if fallback_errors else "Bilinmeyen hata",
             )
@@ -242,14 +241,18 @@ class DocumentProcessor:
         page_markdowns: List[str] = []
 
         for page_idx, page_image in enumerate(page_images, start=1):
+            logger.info("Sayfa isleme basladi | page=%s", page_idx)
             try:
                 page_md = self._process_single_page(page_image)
                 if not page_md.strip():
                     page_md = "[Bu sayfadan metin çıkarılamadı.]"
+                    logger.warning("Sayfada anlamli OCR cikisi yok | page=%s", page_idx)
+                else:
+                    logger.info("Sayfa basariyla islendi | page=%s", page_idx)
 
                 page_markdowns.append(f"## Sayfa {page_idx}\n\n{page_md.strip()}")
             except Exception as exc:
-                LOGGER.exception("Sayfa %s işlenirken hata: %s", page_idx, exc)
+                logger.exception("Sayfa %s işlenirken hata: %s", page_idx, exc)
                 page_markdowns.append(
                     f"## Sayfa {page_idx}\n\n[Hata: Bu sayfa işlenemedi: {exc}]"
                 )
@@ -280,7 +283,7 @@ class DocumentProcessor:
         # En azından anlamlı bir kısmı text-layer ise bu yolu kullan.
         coverage = useful_pages / max(len(page_markdowns), 1)
         if coverage >= 0.4:
-            LOGGER.info("PDF text-layer kullanıldı: %s (coverage=%.2f)", pdf_path.name, coverage)
+            logger.info("PDF text-layer kullanıldı: %s (coverage=%.2f)", pdf_path.name, coverage)
             return "\n\n".join(page_markdowns).strip()
         return ""
 
@@ -376,7 +379,10 @@ class DocumentProcessor:
                         continue
                     html = tbl.get("pred_html") or tbl.get("html")
                     if isinstance(html, str) and html.strip():
-                        page_texts.append(DocumentProcessor._html_table_to_markdown(html))
+                        try:
+                            page_texts.append(DocumentProcessor._html_table_to_markdown(html))
+                        except Exception as exc:
+                            logger.warning("Tablo parse edilemedi (PP-StructureV3): %s", exc)
 
             return "\n\n".join(page_texts).strip()
 
@@ -404,7 +410,10 @@ class DocumentProcessor:
             if "table" in block_type and isinstance(block_res, dict):
                 html = block_res.get("html")
                 if isinstance(html, str) and html.strip():
-                    parts.append(DocumentProcessor._html_table_to_markdown(html))
+                    try:
+                        parts.append(DocumentProcessor._html_table_to_markdown(html))
+                    except Exception as exc:
+                        logger.warning("Tablo parse edilemedi (legacy PPStructure): %s", exc)
                 continue
 
             text = DocumentProcessor._extract_text_from_legacy_block(block_res)
@@ -675,6 +684,8 @@ class DocumentProcessor:
         Bu nedenle hücre yapısını olabildiğince koruyacak şekilde boşluk doldurma
         stratejisi uygulanır.
         """
+        if not html_table or "<table" not in html_table.lower():
+            return ""
         soup = BeautifulSoup(html_table, "html.parser")
         table = soup.find("table")
         if table is None:
@@ -887,7 +898,7 @@ def process_directory_to_markdown(
     files = sorted(files, key=lambda p: p.name.lower())
 
     if not files:
-        LOGGER.warning("İşlenecek destekli dosya bulunamadı: %s", in_dir)
+        logger.warning("İşlenecek destekli dosya bulunamadı: %s", in_dir)
         return []
 
     written: List[Path] = []
@@ -897,9 +908,9 @@ def process_directory_to_markdown(
             out_path = out_dir / f"{src.stem}.md"
             out_path.write_text(markdown, encoding="utf-8")
             written.append(out_path)
-            LOGGER.info("Tamamlandı: %s -> %s", src.name, out_path.name)
+            logger.info("Tamamlandı: %s -> %s", src.name, out_path.name)
         except Exception as exc:
-            LOGGER.exception("Dosya işlenemedi: %s | Hata: %s", src, exc)
+            logger.exception("Dosya işlenemedi: %s | Hata: %s", src, exc)
 
     return written
 
