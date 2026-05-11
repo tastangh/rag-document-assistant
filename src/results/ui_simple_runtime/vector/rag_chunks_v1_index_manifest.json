@@ -1,0 +1,9 @@
+{
+  "collection_name": "rag_chunks_v1",
+  "persist_dir": "src\\results\\ui_simple_runtime\\vector",
+  "source_artifacts_dir": "src\\results\\ui_simple_runtime\\chunks",
+  "indexed_chunk_count": 97,
+  "embedding_dim": 1024,
+  "model_name": "BAAI/bge-m3",
+  "built_at": "2026-05-11T11:12:43.225138+00:00"
+}
