@@ -939,3 +939,14 @@ not:
 - Hata giderimi: TokenClassificationPipeline._sanitize_parameters() got an unexpected keyword argument 'truncation' artik olusmuyor.
 - Tek-iddia semantik dogrulama smoke testi kosuldu; verify_claim_semantically basarili sonuc dondurdu (supported=True, score>threshold).
 - requirements.txt kontrol edildi: 	ransformers>=4.44.0,<5.0.0 araligi mevcut kullanimla uyumlu.
+
+# 12-05-2026 (faz 8 - kalite sertlestirme)
+- Faz 8 degerlendirme metriklerinde nDCG@5 hesaplamasi duzeltildi: ayni ilgili dokumanin tekrar puanlanmasi engellendi ve skor [0,1] araligina sabitlendi.
+- Benchmark akisinda soru bazli elevant_doc_ids kullanilarak doc_id filtre zorlamasi eklendi; alakasiz koleksiyonlardan kaynak cekilmesi azaltildi.
+- generation_pipeline strict guardrail bariyeri sertlestirildi: guardrail modeli unavailable oldugunda fallback zorunlu hale getirildi (guardrail_unavailable_strict_block).
+- strict modda citation coverage < 1.0 durumunda da cevap fallback'e cekiliyor.
+
+# 12-05-2026 (faz 8 - otomatik parametre optimizasyonu)
+- Yeni script eklendi: src/faz8_optimize.py`n- initial_k/final_k grid aramasi ile benchmark + adversarial testleri otomatik kosup objective score ile en iyi konfigürasyonu seciyor.
+- Cikti: src/results/eval/faz8_optimization_report.json (best/top3/all_runs).
+- Objective: kalite (triad + adversarial pass rate) ve gecikme cezasi birlikte optimize ediliyor.

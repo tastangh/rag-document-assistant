@@ -541,16 +541,16 @@ def ask_question(
             if (
                 verification.get("confidence_level") == "low"
                 or float(verification.get("supported_ratio", 0.0)) < GUARDRAIL_THRESHOLD
+                or float(verification.get("citation_coverage", 0.0)) < 1.0
                 or not filtered_answer
             ):
                 answer = FALLBACK_ANSWER
                 verification["fallback_used"] = True
         else:
-            if not filtered_answer:
-                extractive = _build_extractive_cited_answer(contexts)
-                answer = extractive if extractive else FALLBACK_ANSWER
-                verification["fallback_used"] = answer == FALLBACK_ANSWER
-                verification["reason"] = "guardrail_unavailable_extractive_mode"
+            # Faz 8 guvenlik modu: guardrail model yoksa halusinasyon riskini sifira yaklastirmak icin cevap kapat.
+            answer = FALLBACK_ANSWER
+            verification["fallback_used"] = True
+            verification["reason"] = "guardrail_unavailable_strict_block"
     sources = to_sources(contexts)
 
     return {

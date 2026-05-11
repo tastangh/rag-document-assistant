@@ -133,13 +133,16 @@ def _ndcg_at_k(pred_doc_ids: Sequence[str], relevant_doc_ids: Sequence[str], k: 
         return 0.0
     top = [str(x).strip() for x in pred_doc_ids[:k]]
     dcg = 0.0
+    seen_relevant: set[str] = set()
     for i, d in enumerate(top, start=1):
-        gain = 1.0 if d in rel else 0.0
+        gain = 1.0 if (d in rel and d not in seen_relevant) else 0.0
         if gain > 0:
             dcg += gain / math.log2(i + 1)
+            seen_relevant.add(d)
     ideal_hits = min(len(rel), k)
     idcg = sum(1.0 / math.log2(i + 1) for i in range(1, ideal_hits + 1))
-    return (dcg / idcg) if idcg > 0 else 0.0
+    score = (dcg / idcg) if idcg > 0 else 0.0
+    return min(1.0, max(0.0, score))
 
 
 def _answer_relevance(answer: str, gt: str, has_citation: bool) -> float:
@@ -186,6 +189,7 @@ def run_benchmark(
             final_k=final_k,
             model_name=model,
             ollama_url=ollama_url,
+            doc_id=(rel[0] if rel else None),
             strict_guardrail=True,
             device=retrieval_device,
         )
