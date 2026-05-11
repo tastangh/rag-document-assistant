@@ -1,0 +1,9 @@
+{
+  "collection_name": "rag_chunks_v1",
+  "persist_dir": "data\\sessions\\131fad54-4dfd-45bb-9549-dd20a46770e4\\vector",
+  "source_artifacts_dir": "data\\sessions\\131fad54-4dfd-45bb-9549-dd20a46770e4\\chunks",
+  "indexed_chunk_count": 101,
+  "embedding_dim": 1024,
+  "model_name": "newmindai/Mursit-Large-TR-Retrieval",
+  "built_at": "2026-05-11T21:42:48.942710+00:00"
+}
