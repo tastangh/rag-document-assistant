@@ -2,16 +2,92 @@
 
 Yerel (offline/air-gapped uyumlu) RAG tabanli belge analiz ve soru-cevap sistemi.
 
-## Kurulum (Poetry)
+## 1) Yeni Bilgisayarda Sifirdan Kurulum (Windows)
 
-```bash
-poetry install
-poetry run streamlit run src/ui_streamlit.py
+### Adim 1: Repo'yu klonla
+
+```powershell
+git clone <REPO_URL>
+cd rag-document-assistant
 ```
 
-## Ortam Degiskenleri
+### Adim 2: Python 3.11 ile venv olustur
 
-`.env.example` dosyasini kopyalayip `.env` olusturabilirsiniz.
+```powershell
+py -3.11 -m venv .venv
+```
+
+### Adim 3: Venv aktive et
+
+PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+CMD:
+
+```bat
+.\.venv\Scripts\activate.bat
+```
+
+### Adim 4: Pip ve bagimliliklari kur
+
+```powershell
+python -m pip install --upgrade pip setuptools wheel
+python -m pip install -r requirements.txt
+```
+
+Not:
+- OCR tarafi Windows'ta Paddle CPU calisir.
+- Embedding/retrieval tarafi Torch CUDA kuruluysa GPU kullanir.
+
+### Adim 5: Ollama hazirligi
+
+Ollama'nin ayakta oldugunu kontrol et:
+
+```powershell
+ollama list
+```
+
+Model yoksa cek:
+
+```powershell
+ollama pull qwen3:8b
+```
+
+### Adim 6: (Opsiyonel ama onerilir) OCR model cache yolunu sabitle
+
+```powershell
+$env:RAG_OCR_CACHE_DIR="E:\Workspace\rag-document-assistant\models\paddlex"
+$env:PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK="True"
+```
+
+### Adim 7: Uygulamayi baslat
+
+```powershell
+.\run.ps1
+```
+
+UI:
+- `http://localhost:8501`
+
+## 2) Ilk Calistirmada Beklenenler
+
+- Ilk dokuman hazirlamada OCR/layout modelleri indirilebilir (Paddle resmi modelleri).
+- Bu sadece ilk seferdir; sonra cache'den kullanilir.
+- Ilk embedding yuklemesi de model cache olusana kadar daha uzun surebilir.
+
+## 3) Hizli Smoke Test
+
+1. UI'dan `Case_Study_TUSAŞ_LLM.pdf` yukle.
+2. `Belgeleri Hazirla` tikla.
+3. Su sorulari dene:
+   - `Teslimatta istenen dosyalar nelerdir?`
+   - `Bu dokumanda projenin ozeti nedir?`
+   - `Teslim yontemi nedir?`
+
+## 4) Ortam Degiskenleri
 
 - `RAG_RESULTS_DIR` (default: `src/results`)
 - `RAG_RUNTIME_ROOT` (default: `src/results/ui_simple_runtime`)
@@ -30,41 +106,11 @@ poetry run streamlit run src/ui_streamlit.py
 - `RAG_EMBED_DEVICE` (default: `cpu`)
 - `RAG_RETRIEVAL_DEVICE` (default: `cpu`)
 
-## Docker
+## 5) Sorun Giderme
 
-```bash
-copy .env.example .env
-
-docker compose up --build
-```
-
-Servis varsayilan olarak `http://localhost:8501` adresinde calisir.
-
-Notlar:
-- Compose varsayilanlari CPU odaklidir.
-- Air-gapped ortamlarda Python paketleri, model dosyalari ve container base image onceden mirror edilmelidir.
-
-## Faz 6 Degerlendirme (RAG Triad)
-
-```bash
-poetry run python src/faz6_eval.py \
-  --questions-file src/results/eval/faz4_smoke_questions.jsonl \
-  --persist-dir src/results/vectorStore/chroma \
-  --collection rag_chunks_v1 \
-  --strict-guardrail \
-  --pass-threshold 0.55
-```
-
-Rapor cikti dosyasi:
-- `src/results/eval/faz6_triad_report.json`
-
-CI/offline fixture modu:
-
-```bash
-poetry run python src/faz6_eval.py \
-  --answers-file src/results/eval/faz6_answers_fixture.jsonl \
-  --pass-threshold 0.55 \
-  --output src/results/eval/faz6_triad_report_ci.json
-```
-
-Bu modda Ollama cagrisi yapilmaz; mevcut cevap kayitlari uzerinden triad metrikleri hesaplanir.
+- `Torch not compiled with CUDA enabled`:
+  - GPU yerine CPU Torch kurulu. CUDA wheel kur veya `RAG_EMBED_DEVICE=cpu` ile devam et.
+- `pyarrow access violation`:
+  - Bu projede OCR import zinciri icin koruyucu shim eklendi; yine olursa venv'i temiz kur.
+- `Baglamda yeterli bilgi bulunamadi`:
+  - Dokuman `ready` mi kontrol et, sonra soruyu tekrar dene (sistem otomatik retry yapiyor).

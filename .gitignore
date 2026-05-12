@@ -4,3 +4,5 @@
 /.pycache
 /src/.paddlex_cache
 /models
+/src/results
+/data/sessions

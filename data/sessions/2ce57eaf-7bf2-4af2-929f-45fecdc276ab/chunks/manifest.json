@@ -1,0 +1,15 @@
+{
+  "model_name": "E:\\Workspace\\rag-document-assistant\\models\\embeddings\\newmindai__Mursit-Large-TR-Retrieval",
+  "embedding_dim": 1024,
+  "chunk_count": 5,
+  "created_at": "2026-05-12T21:26:19.982430+00:00",
+  "source_docs": [
+    "Case_Study_TUSAŞ_LLM.md"
+  ],
+  "device": "cpu",
+  "dtype": "float32",
+  "artifacts": {
+    "chunks_jsonl": "chunks.jsonl",
+    "embeddings_npy": "embeddings.npy"
+  }
+}
