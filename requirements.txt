@@ -1,4 +1,4 @@
-﻿# Deprecated: Poetry is the source of truth for dependencies.
+# Deprecated: Poetry is the source of truth for dependencies.
 # Use:
 #   poetry install
 #   poetry run <command>

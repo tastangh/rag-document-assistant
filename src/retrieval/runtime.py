@@ -47,11 +47,21 @@ def get_cross_encoder_class() -> Any:
 def resolve_device(device_arg: str) -> str:
     if device_arg == "gpu":
         device_arg = "cuda"
-    if device_arg != "auto":
-        return device_arg
     try:
         import torch
     except Exception:
+        return "cpu"
+    if device_arg == "auto":
+        if torch.cuda.is_available():
+            return "cuda"
+        if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+            return "mps"
+        return "cpu"
+    if device_arg == "cuda":
+        return "cuda" if torch.cuda.is_available() else "cpu"
+    if device_arg == "mps":
+        if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available():
+            return "mps"
         return "cpu"
     if torch.cuda.is_available():
         return "cuda"
@@ -194,4 +204,3 @@ def rrf_fuse(
     fused = list(merged.values())
     fused.sort(key=lambda x: x.rrf_score if x.rrf_score is not None else -math.inf, reverse=True)
     return fused
-

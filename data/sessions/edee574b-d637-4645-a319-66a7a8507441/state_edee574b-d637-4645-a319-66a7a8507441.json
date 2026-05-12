@@ -1,0 +1,81 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "Bu dokumanda projenin ozeti nedir?"
+    },
+    {
+      "role": "assistant",
+      "content": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": [
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c1",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] ## Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme Sayfa 1 / 4 TEKNİK DEĞERLENDİRME Case Study Poz..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c3",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] 3 Demo Video Sisteminizi müşteriye tanıttığınız kısa bir video (3-5 dk). Format ve içerik tercihi si..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c2",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] e tutarlı yanıtlar alabilmeli. Doğruluk Sistem, belgede olmayan bilgileri üretmemeli (hallucination)..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c4",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] .md — Test ve Doğrulama Sisteminizi nasıl test ettiğinizi ve sınırlarını belgeleyin. Bu dosyada aşağ..."
+        }
+      ],
+      "details": {
+        "latency_sec": 13.561,
+        "sources_count": 4,
+        "fallback_used": true,
+        "supported_ratio": 0.8,
+        "confidence": "medium",
+        "query_mode": "rag_fact"
+      }
+    }
+  ],
+  "ready": true,
+  "docs": [
+    {
+      "name": "Case_Study_TUSAŞ_LLM.pdf",
+      "path": "data\\sessions\\edee574b-d637-4645-a319-66a7a8507441\\uploads\\Case_Study_TUSAŞ_LLM.pdf",
+      "status": "ready"
+    }
+  ],
+  "last_error": "",
+  "model_name": "qwen3:8b",
+  "system_instructions": "",
+  "temperature": 0.35,
+  "top_k": 40,
+  "top_p": 0.9,
+  "repeat_penalty": 1.1,
+  "thinking_level": "medium",
+  "strict_guardrail": true,
+  "fast_mode": true,
+  "initial_k": 16,
+  "final_k": 5,
+  "retrieval_min_overlap": 0.05,
+  "guardrail_threshold": 0.5,
+  "citation_min_coverage": 0.8,
+  "creativity": 35,
+  "log_level": 1,
+  "doc_filter_mode": "auto",
+  "manual_doc_id": "",
+  "preset_id": "tr_balanced",
+  "embedding_model": "newmindai/Mursit-Large-TR-Retrieval",
+  "reranker_model": "BAAI/bge-reranker-v2-m3",
+  "ocr_profile": "default",
+  "ocr_backend": "paddle",
+  "ocr_device_mode": "cpu",
+  "session_id": "edee574b-d637-4645-a319-66a7a8507441",
+  "access_key": "hCim_awTeDobCTu6AtMVEc_cwoNB_il0"
+}
