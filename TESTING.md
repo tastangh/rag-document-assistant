@@ -72,7 +72,7 @@ verify:
 - cevapta belge yukleme + soru-cevap + kaynak gosterimi kapsami gecmeli
 - en az 1 kaynak gorunmeli
 - `fallback_used=false` beklenir
-
+GEÇTİ
 ------------------------------------------------------------
 CASE-6: TUSAS PDF - TESLIMAT DOSYALARI (TR)
 ------------------------------------------------------------
@@ -84,6 +84,7 @@ verify:
 - cevapta `DEVLOG.md` ve `TESTING.md` gecmeli
 - kaynaklar panelinde ilgili sayfa/chunk gorunmeli
 - `confidence` en az `medium` olmali
+GEÇTİ
 
 ------------------------------------------------------------
 CASE-7: TUSAS PDF - TESLIM YONTEMI (TR)
@@ -96,6 +97,7 @@ verify:
 - cevapta `GitHub repository linki` bilgisi gecmeli
 - en az 1 kaynak teslimat bolumunden gelmeli
 - cevap net ve kisa olmali
+GEÇTİ
 
 ------------------------------------------------------------
 CASE-8: TUSAS PDF - PLAN YORUMU (TR)
@@ -108,6 +110,7 @@ verify:
 - cevap dokuman baglamina dayali olmali
 - en az 1 kaynak olmali
 - dokumanda olmayan kesin iddialar olmamali
+GEÇTİ
 
 ------------------------------------------------------------
 CASE-9: TUSAS PDF - CROSS-LINGUAL (EN)
@@ -120,6 +123,7 @@ verify:
 - cevap ingilizce ve anlamli olmali
 - deliverable olarak `DEVLOG.md` / `TESTING.md` korunmali
 - kaynaklar ayni turkce dokumandan gelmeli
+GEÇTİ
 
 ------------------------------------------------------------
 CASE-10: TUSAS PDF - HALLUCINATION GUARD
@@ -132,3 +136,4 @@ verify:
 - sistem guvenli fallback vermeli (`Baglamda yeterli bilgi bulunamadi`)
 - uydurma sayisal bilgi uretmemeli
 - `fallback_used=true` beklenir
+GEÇTİ

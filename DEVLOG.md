@@ -1,4 +1,4 @@
-06-05-2026
+﻿06-05-2026
 Case Study'deki sistem için neleri yapmama gerek olduğunu bularak başladım.
 LLM yardımı ile bu proje için gerekli ihtiyaçları çıkarttım.
 Gerekli ihtiyaçları fazlara böldüm.
@@ -976,10 +976,29 @@ Son asamada çok karmaşık gelistirdiğimiz sistemin gereksiz fonkları vb temi
 
 LLM desteği ile karışık ve uzun yaptığım python dosyalarını böldüm.
 
-
+MİMARİYİ NOTEBOOK LM İLE ÇİZDİRDİM 
 
 
 
 # en baştan yapsam neleri farklı yapardım
 
 tüm modelleri , rerank embedding ocr, paddle vb dahil hepsini offline olarak bir models klasöründe tutmalıyız
+
+Tüm model varlıklarını tek kökte toplardım:
+models/embedding
+models/reranker
+models/guardrail
+models/ocr (Paddle/PaddleX cache dahil)
+models/llm (Ollama model dosyaları veya mirror)
+İnternete bağımlı ilk çalıştırma yerine “hazır model paketi + doğrulama” akışı kurardım:
+Ortama ilk girişte model indirmek yerine, önceden hazırlanmış paketleri açıp checksum doğrulardım.
+Her fazdan önce “model var mı / sürüm doğru mu / boyut doğru mu” kontrolünü zorunlu kılardım.
+Model sürümlerini ve yol çözümlemeyi tek bir manifest dosyasında sabitlerdim:
+Hangi modelin hangi görevde kullanıldığı (embedding, rerank, guardrail, ocr) merkezi bir models/manifest.json ile yönetilirdi.
+Kod içinde dağınık model adı yerine sadece manifest referansı kullanılırdı.
+Air-gapped senaryoyu varsayılan yapardım:
+HF_HUB_OFFLINE, TRANSFORMERS_OFFLINE, HF_DATASETS_OFFLINE baştan aktif gelirdi.
+Tüm cache path’lerini doğrudan models/ altına yönlendirirdim.
+GPU/CPU uyumluluğu için çift profil dağıtırdım:
+windows-cpu-stable ve linux-gpu gibi net kurulum profilleriyle sürücü/DLL riskini en başta azaltırdım.
+Özet: RAG kalitesi kadar operasyonel taşınabilirlik de kritik. Bu yüzden “tek klasörde offline model yönetimi + sürüm manifesti + doğrulama kapısı” yaklaşımı en doğru temel olurdu.
