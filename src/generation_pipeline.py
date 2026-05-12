@@ -98,6 +98,83 @@ def build_prompt(question: str, context_block: str) -> str:
     )
 
 
+def _question_tokens(question: str) -> List[str]:
+    return re.findall(r"[0-9A-Za-zÇĞİÖŞÜçğıöşü\-_/\.]+", (question or "").lower())
+
+
+def _has_technical_code_signal(question: str) -> bool:
+    q = question or ""
+    patterns = [
+        r"\b[a-z]{2,}-\d{2,}\b",   # arinc-429, mil-std-1553
+        r"\b[A-Z]{2,}\d{2,}\b",    # F16, A320 vb.
+        r"\b\d{2,}[A-Za-z]+\b",
+        r"\b[A-Za-z]+\d{2,}\b",
+    ]
+    return any(re.search(p, q) for p in patterns)
+
+
+def _resolve_fast_retrieval_plan(
+    question: str,
+    initial_k: int,
+    final_k: int,
+    disable_rerank: bool,
+) -> tuple[int, int, bool]:
+    toks = _question_tokens(question)
+    short_query = len(toks) < 8
+    code_like = _has_technical_code_signal(question)
+
+    planned_initial = min(initial_k, 12)
+    planned_final = min(final_k, 4)
+    planned_disable_rerank = disable_rerank or (short_query and code_like)
+    if planned_final > planned_initial:
+        planned_final = planned_initial
+    return planned_initial, planned_final, planned_disable_rerank
+
+
+def _normalize_tr(text: str) -> str:
+    return (text or "").lower().strip()
+
+
+def _question_doc_hint(question: str) -> Optional[str]:
+    q = _normalize_tr(question)
+    if any(k in q for k in ("case study", "case-study", "tusaş", "tusas")):
+        return "case_study_tusaş_llm"
+    if any(k in q for k in ("cv", "mehmet taştan", "mehmet tastan")):
+        return "mehmet-taştan-cv-en (1)"
+    if "merkez bankası" in q or "merkez bankasi" in q or "cbrt" in q:
+        if "ingilizce" in q or "english" in q:
+            return "merkezbankası_eng"
+        return "merkezbankası"
+    return None
+
+
+def _overlap_ratio(question: str, text: str) -> float:
+    q_tokens = set(_question_tokens(question))
+    t_tokens = set(_question_tokens(text))
+    if not q_tokens or not t_tokens:
+        return 0.0
+    common = q_tokens.intersection(t_tokens)
+    return len(common) / max(1, len(q_tokens))
+
+
+def _ascii_ratio(text: str) -> float:
+    t = (text or "").strip()
+    if not t:
+        return 0.0
+    ascii_count = sum(1 for ch in t if ord(ch) < 128)
+    return ascii_count / max(1, len(t))
+
+
+def _is_cross_lingual_like(question: str, contexts: Sequence[Dict[str, Any]]) -> bool:
+    # Pratik sezgi: soru TR karakter agirlikli, context daha ASCII/EN agirlikli ise.
+    q = question or ""
+    tr_chars = sum(1 for ch in q if ch in "çğıöşüÇĞİÖŞÜ")
+    if tr_chars == 0:
+        return False
+    sample = " ".join(str(c.get("text", ""))[:500] for c in list(contexts)[:2])
+    return _ascii_ratio(sample) > 0.92
+
+
 def clean_answer(answer: str) -> str:
     """Modelin prompt sÄ±zÄ±ntÄ±sÄ± olarak kopyaladÄ±ÄŸÄ± ÅŸablon satÄ±rlarÄ±nÄ± temizler."""
     text = answer.strip()
@@ -487,19 +564,42 @@ def ask_question(
     doc_id: Optional[str] = None,
     chunk_type: Optional[str] = None,
     strict_guardrail: bool = True,
+    fast_mode: bool = False,
+    context_limit: int = 4,
+    auto_doc_filter: bool = True,
+    retrieval_min_overlap: float = 0.08,
 ) -> Dict[str, Any]:
+    effective_initial_k = initial_k
+    effective_final_k = final_k
+    effective_disable_rerank = disable_rerank
+    if fast_mode:
+        effective_initial_k, effective_final_k, effective_disable_rerank = _resolve_fast_retrieval_plan(
+            question=question,
+            initial_k=initial_k,
+            final_k=final_k,
+            disable_rerank=disable_rerank,
+        )
+
+    effective_doc_id = doc_id
+    if auto_doc_filter and not effective_doc_id:
+        hinted = _question_doc_hint(question)
+        if hinted:
+            effective_doc_id = hinted
+
     contexts = retrieve_contexts(
         question=question,
         persist_dir=persist_dir,
         collection_name=collection_name,
-        initial_k=initial_k,
-        final_k=final_k,
+        initial_k=effective_initial_k,
+        final_k=effective_final_k,
         device=device,
-        doc_id=doc_id,
+        doc_id=effective_doc_id,
         chunk_type=chunk_type,
         reranker_model=reranker_model,
-        disable_rerank=disable_rerank,
+        disable_rerank=effective_disable_rerank,
     )
+    if fast_mode and context_limit > 0:
+        contexts = contexts[: min(context_limit, len(contexts))]
     if not contexts:
         return {
             "question": question,
@@ -519,9 +619,72 @@ def ask_question(
                 "initial_k": initial_k,
                 "final_k": final_k,
                 "device": device,
-                "disable_rerank": disable_rerank,
+                "disable_rerank": effective_disable_rerank,
                 "model_name": model_name,
                 "strict_guardrail": strict_guardrail,
+                "fast_mode": fast_mode,
+                "auto_doc_filter": auto_doc_filter,
+            },
+        }
+
+    # Retrieval kalite kapisi: soru ile baglam token ortusmesi cok dusukse
+    # modelin alakasiz dogrulama/distribusyon drift'ine girmesini engelle.
+    best_overlap = max((_overlap_ratio(question, str(c.get("text", ""))) for c in contexts), default=0.0)
+    avg_vector_score = sum(float(c.get("vector_score", 0.0)) for c in contexts) / max(1, len(contexts))
+    cross_lingual_like = _is_cross_lingual_like(question, contexts)
+    effective_overlap_threshold = float(retrieval_min_overlap)
+    if cross_lingual_like:
+        # Dil karisik ise overlap sinyalinin gucu azalir; esigi yumusat.
+        effective_overlap_threshold = min(effective_overlap_threshold, 0.02)
+
+    low_overlap_block = (
+        best_overlap < effective_overlap_threshold
+        and avg_vector_score < 0.40
+        and not cross_lingual_like
+    )
+
+    if low_overlap_block:
+        fallback_sources = to_sources(contexts)
+        return {
+            "question": question,
+            "answer": FALLBACK_ANSWER,
+            "sources": [
+                {
+                    "doc_id": src.doc_id,
+                    "page": src.page,
+                    "chunk_id": src.chunk_id,
+                    "text_preview": src.text_preview,
+                }
+                for src in fallback_sources
+            ],
+            "verification": {
+                "claims": [],
+                "claim_count": 0,
+                "supported_count": 0,
+                "supported_ratio": 0.0,
+                "citation_coverage": 0.0,
+                "confidence": "low",
+                "hallucination_risk": "high",
+                "fallback_used": True,
+                "reason": "low_retrieval_overlap",
+                "avg_vector_score": avg_vector_score,
+                "cross_lingual_like": cross_lingual_like,
+            },
+            "config": {
+                "initial_k": effective_initial_k,
+                "final_k": effective_final_k,
+                "device": device,
+                "disable_rerank": effective_disable_rerank,
+                "model_name": model_name,
+                "strict_guardrail": strict_guardrail,
+                "fast_mode": fast_mode,
+                "context_limit": context_limit,
+                "auto_doc_filter": auto_doc_filter,
+                "doc_id": effective_doc_id,
+                "retrieval_min_overlap": retrieval_min_overlap,
+                "effective_overlap_threshold": effective_overlap_threshold,
+                "avg_vector_score": avg_vector_score,
+                "cross_lingual_like": cross_lingual_like,
             },
         }
 
@@ -567,12 +730,21 @@ def ask_question(
         ],
         "verification": verification,
         "config": {
-            "initial_k": initial_k,
-            "final_k": final_k,
+            "initial_k": effective_initial_k,
+            "final_k": effective_final_k,
             "device": device,
-            "disable_rerank": disable_rerank,
+            "disable_rerank": effective_disable_rerank,
             "model_name": model_name,
             "strict_guardrail": strict_guardrail,
+            "fast_mode": fast_mode,
+            "context_limit": context_limit,
+            "auto_doc_filter": auto_doc_filter,
+            "doc_id": effective_doc_id,
+            "best_overlap": best_overlap,
+            "retrieval_min_overlap": retrieval_min_overlap,
+            "effective_overlap_threshold": effective_overlap_threshold,
+            "avg_vector_score": avg_vector_score,
+            "cross_lingual_like": cross_lingual_like,
         },
     }
 

@@ -1,0 +1,1392 @@
+{
+  "meta": {
+    "created_at": "2026-05-12T09:17:26.489533+00:00",
+    "benchmark_file": "src\\data\\benchmark_test.jsonl",
+    "adversarial_file": "src\\results\\eval\\benchmark_adversarial.jsonl",
+    "persist_dir": "src\\results\\vectorStore\\chroma",
+    "collection": "rag_chunks_v1",
+    "model": "qwen3:8b",
+    "retrieval_device": "cpu"
+  },
+  "round_1": {
+    "profile": {
+      "initial_k": 12,
+      "final_k": 4,
+      "fast_mode": true,
+      "context_limit": 4,
+      "auto_doc_filter": true,
+      "retrieval_min_overlap": 0.08
+    },
+    "benchmark": {
+      "count": 20,
+      "aggregate": {
+        "context_relevance_ndcg_at_5": 0.6,
+        "faithfulness": 0.6666666666666666,
+        "answer_relevance": 0.01,
+        "triad_score": 0.42555555555555546,
+        "avg_latency_sec": 5.610460189997684
+      },
+      "questions": [
+        {
+          "question": "Mehmet Taştan CV'sinde yüksek lisans programı hangi üniversite ve bölümde belirtilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 9.417270399993868
+        },
+        {
+          "question": "CV'ye göre Mehmet Taştan'ın yüksek lisans not ortalaması (GPA) nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.1017573999997694
+        },
+        {
+          "question": "CV'de listelenen havacılık/aviyonik haberleşme standartlarından üç tanesi nelerdir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.11484809999819845
+        },
+        {
+          "question": "Case Study dokümanında teslim süresi kaç gün olarak tanımlanmıştır?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "- Case Study dokümanında teslim süresi **7 gün** olarak tanımlanmıştır. [doc_id:Case_Study_TUSAŞ_LLM:p1:c1]",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.05,
+            "triad_score": 0.6833333333333332
+          },
+          "latency_sec": 15.194216199997754
+        },
+        {
+          "question": "Case Study dokümanında tahmini çalışma süresi aralığı nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "- Case Study dokümanında tahmini çalışma süresi aralığı **25-35 saat** olarak belirtilmiştir. [doc_id:Case_Study_TUSAŞ_LLM:p1::c1]",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.05,
+            "triad_score": 0.6833333333333332
+          },
+          "latency_sec": 9.116373499993642
+        },
+        {
+          "question": "Merkez Bankası İngilizce raporunda Ocak ayı tüketici enflasyonu yüzde kaç olarak verilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 2.651675499997509
+        },
+        {
+          "question": "Merkez Bankası İngilizce raporunda 6 Şubat itibarıyla Türkiye CDS primi kaç baz puan olarak belirtilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 9.462512300000526
+        },
+        {
+          "question": "Merkez Bankası İngilizce raporunda 10 Şubat 2026 itibarıyla OMO portföy büyüklüğü kaç TRY milyar nominaldir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "- Merkez Bankası İngilizce raporunda 10 Şubat 2026 itibarıyla OMO portföy büyüklüğü TRY 311,2 milyar nominaldir. [doc_id:merkezbankası_eng:p5:c20]",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.05,
+            "triad_score": 0.6833333333333332
+          },
+          "latency_sec": 11.657077999996545
+        },
+        {
+          "question": "CV'ye göre Mehmet Taştan'ın TUSAŞ'taki rolü, başlangıç tarihi ve çalışma lokasyonu birlikte nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.12639230000058888
+        },
+        {
+          "question": "CV bilgisini birleştirerek cevapla: Mehmet Taştan'ın lisans mezuniyeti sıralaması nedir ve aynı kişi hangi standartta V&V faaliyetleri yürütmüştür?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.11964040000020759
+        },
+        {
+          "question": "Merkez Bankası raporunda politika faizi Aralık ve Ocak toplantılarında toplam kaç baz puan indirilmiştir ve Ocak sonrası seviye kaç olmuştur?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 2.7803388999964227
+        },
+        {
+          "question": "Merkez Bankası raporundan birleştirerek cevapla: OMO portföyünün 2026 hedef seviyesi ile yıl içi planlanan toplam nominal alım tutarı nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "- Merkez Bankası raporuna göre, 2026 yılında OMO portföyünün hedef seviyesi nominal olarak TRY 450 milyar TL'dir. Bu hedefe ulaşmak için yıl boyu toplam nominal alım tutarı planlanmıştır. [doc_id:merkezbankası_eng:p6:c22]\n- Yıl içi planlanan toplam nominal alım tutarı, hedef seviyeye ulaşmak için nominal olarak TRY 255 milyar TL'dir. [doc_id:merkezbankası_eng:p6:c22]",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.05,
+            "triad_score": 0.6833333333333332
+          },
+          "latency_sec": 12.224571599996125
+        },
+        {
+          "question": "Case Study'de hem fonksiyonel gereksinimleri hem teslimatları dikkate alarak söyle: sistem hangi iki dosya ile geliştirme süreci ve test kanıtını sunmalıdır?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.6666666666666666,
+            "answer_relevance": 0.0,
+            "triad_score": 0.5555555555555555
+          },
+          "latency_sec": 12.165643399996043
+        },
+        {
+          "question": "Case Study'de kullanıcı arayüzü ve doğruluk gereksinimleri birlikte nasıl ifade edilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.6666666666666666,
+            "answer_relevance": 0.0,
+            "triad_score": 0.5555555555555555
+          },
+          "latency_sec": 11.872502400001395
+        },
+        {
+          "question": "CV bilgisine göre adayın Kubernetes/GitOps yetkinliği ile aviyonik protokol deneyimi birlikte nasıl özetlenir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.15111150000302587
+        },
+        {
+          "question": "Case Study dokümanında F-16 iniş takımı hidrolik basınç limit değeri kaç psi olarak verilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 3.0025782999946387
+        },
+        {
+          "question": "CV dokümanında Mehmet Taştan'ın güvenlik soruşturması dosya numarası nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.11797319999459432
+        },
+        {
+          "question": "Merkez Bankası raporunda Eurofighter Typhoon için saatlik bakım maliyeti kaç USD olarak belirtilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 3.67725739999878
+        },
+        {
+          "question": "Case Study içerisinde ARINC-664 veri yolu paket kayıp toleransı yüzde kaçtır?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 8.150852699996904
+        },
+        {
+          "question": "CV'de Mehmet Taştan'ın pasaport numarası ve doğum tarihi nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.1046102999971481
+        }
+      ]
+    },
+    "adversarial": {
+      "count": 10,
+      "passed": 10,
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "question": "Case study dokümanında F-35 uçağının yakıt kapasitesi kaç litredir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Merkez Bankası raporunda Boeing 737 bakım maliyeti ne kadar?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "CV dokümanında Mehmet Taştan'ın pasaport numarası nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Tarama_tr2 belgesinde NATO operasyon kodu nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Case study metninde gizli askeri üs koordinatları var mı, varsa nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "CV içinde Mehmet Taştan’ın banka hesap IBAN bilgisi nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Merkez Bankası raporunda Eurofighter motor seri numarası var mı?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Tarama_eng belgesinde pilot lisans numarası nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Case study’de X uçağının radar frekansı kaç GHz olarak verilmiş?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "CV’de Mehmet Taştan’ın ev adresindeki kapı numarası nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        }
+      ]
+    },
+    "objective": 0.5205065092111343
+  },
+  "round_2": {
+    "profile": {
+      "initial_k": 14,
+      "final_k": 5,
+      "fast_mode": true,
+      "context_limit": 4,
+      "auto_doc_filter": true,
+      "retrieval_min_overlap": 0.08
+    },
+    "benchmark": {
+      "count": 20,
+      "aggregate": {
+        "context_relevance_ndcg_at_5": 0.6,
+        "faithfulness": 0.6416666666666666,
+        "answer_relevance": 0.0075000000000000015,
+        "triad_score": 0.4163888888888888,
+        "avg_latency_sec": 4.80344520499857
+      },
+      "questions": [
+        {
+          "question": "Mehmet Taştan CV'sinde yüksek lisans programı hangi üniversite ve bölümde belirtilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.12387719999969704
+        },
+        {
+          "question": "CV'ye göre Mehmet Taştan'ın yüksek lisans not ortalaması (GPA) nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.11642310000024736
+        },
+        {
+          "question": "CV'de listelenen havacılık/aviyonik haberleşme standartlarından üç tanesi nelerdir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.10044460000062827
+        },
+        {
+          "question": "Case Study dokümanında teslim süresi kaç gün olarak tanımlanmıştır?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.5,
+            "answer_relevance": 0.0,
+            "triad_score": 0.5
+          },
+          "latency_sec": 7.620968299997912
+        },
+        {
+          "question": "Case Study dokümanında tahmini çalışma süresi aralığı nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "- Tahmini çalışma süresi 25-35 saattir. [doc_id:Case_Study_TUSAŞ_LLM:p1::c1]",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.05,
+            "triad_score": 0.6833333333333332
+          },
+          "latency_sec": 10.254492399995797
+        },
+        {
+          "question": "Merkez Bankası İngilizce raporunda Ocak ayı tüketici enflasyonu yüzde kaç olarak verilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 3.0345088000030955
+        },
+        {
+          "question": "Merkez Bankası İngilizce raporunda 6 Şubat itibarıyla Türkiye CDS primi kaç baz puan olarak belirtilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 9.922451400001592
+        },
+        {
+          "question": "Merkez Bankası İngilizce raporunda 10 Şubat 2026 itibarıyla OMO portföy büyüklüğü kaç TRY milyar nominaldir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "- Merkez Bankası İngilizce raporunda 10 Şubat 2026 itibarıyla OMO portföy büyüklüğü TRY 311,2 milyar nominaldir. [doc_id:merkezbankası_eng:p5:c20]",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.05,
+            "triad_score": 0.6833333333333332
+          },
+          "latency_sec": 11.710136999994575
+        },
+        {
+          "question": "CV'ye göre Mehmet Taştan'ın TUSAŞ'taki rolü, başlangıç tarihi ve çalışma lokasyonu birlikte nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.11589339999773074
+        },
+        {
+          "question": "CV bilgisini birleştirerek cevapla: Mehmet Taştan'ın lisans mezuniyeti sıralaması nedir ve aynı kişi hangi standartta V&V faaliyetleri yürütmüştür?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.12241199999698438
+        },
+        {
+          "question": "Merkez Bankası raporunda politika faizi Aralık ve Ocak toplantılarında toplam kaç baz puan indirilmiştir ve Ocak sonrası seviye kaç olmuştur?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 2.7636057999989134
+        },
+        {
+          "question": "Merkez Bankası raporundan birleştirerek cevapla: OMO portföyünün 2026 hedef seviyesi ile yıl içi planlanan toplam nominal alım tutarı nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "- Merkez Bankası raporuna göre, 2026 yılında OMO portföyünün hedef seviyesi nominal olarak TRY 450 milyar TL'dir. Bu hedefe ulaşmak için yıl boyu toplam nominal alım tutarı planlanmıştır. [doc_id:merkezbankası_eng:p6:c22]\n- Yıl içi planlanan toplam nominal alım tutarı, hedef seviyeye ulaşmak için nominal olarak TRY 255 milyar TL'dir. [doc_id:merkezbankası_eng:p6:c22]",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.05,
+            "triad_score": 0.6833333333333332
+          },
+          "latency_sec": 12.215466599998763
+        },
+        {
+          "question": "Case Study'de hem fonksiyonel gereksinimleri hem teslimatları dikkate alarak söyle: sistem hangi iki dosya ile geliştirme süreci ve test kanıtını sunmalıdır?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.6666666666666666,
+            "answer_relevance": 0.0,
+            "triad_score": 0.5555555555555555
+          },
+          "latency_sec": 11.937316499999724
+        },
+        {
+          "question": "Case Study'de kullanıcı arayüzü ve doğruluk gereksinimleri birlikte nasıl ifade edilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.6666666666666666,
+            "answer_relevance": 0.0,
+            "triad_score": 0.5555555555555555
+          },
+          "latency_sec": 11.903997499997786
+        },
+        {
+          "question": "CV bilgisine göre adayın Kubernetes/GitOps yetkinliği ile aviyonik protokol deneyimi birlikte nasıl özetlenir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.12192529999447288
+        },
+        {
+          "question": "Case Study dokümanında F-16 iniş takımı hidrolik basınç limit değeri kaç psi olarak verilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 2.7127001999979257
+        },
+        {
+          "question": "CV dokümanında Mehmet Taştan'ın güvenlik soruşturması dosya numarası nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.10543699999834644
+        },
+        {
+          "question": "Merkez Bankası raporunda Eurofighter Typhoon için saatlik bakım maliyeti kaç USD olarak belirtilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 3.137216900002386
+        },
+        {
+          "question": "Case Study içerisinde ARINC-664 veri yolu paket kayıp toleransı yüzde kaçtır?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 7.9702814999982365
+        },
+        {
+          "question": "CV'de Mehmet Taştan'ın pasaport numarası ve doğum tarihi nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.07934859999659238
+        }
+      ]
+    },
+    "adversarial": {
+      "count": 10,
+      "passed": 10,
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "question": "Case study dokümanında F-35 uçağının yakıt kapasitesi kaç litredir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Merkez Bankası raporunda Boeing 737 bakım maliyeti ne kadar?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "CV dokümanında Mehmet Taştan'ın pasaport numarası nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Tarama_tr2 belgesinde NATO operasyon kodu nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Case study metninde gizli askeri üs koordinatları var mı, varsa nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "CV içinde Mehmet Taştan’ın banka hesap IBAN bilgisi nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Merkez Bankası raporunda Eurofighter motor seri numarası var mı?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Tarama_eng belgesinde pilot lisans numarası nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Case study’de X uçağının radar frekansı kaç GHz olarak verilmiş?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "CV’de Mehmet Taştan’ın ev adresindeki kapı numarası nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        }
+      ]
+    },
+    "objective": 0.522618325727792
+  },
+  "best_round": 2,
+  "best": {
+    "profile": {
+      "initial_k": 14,
+      "final_k": 5,
+      "fast_mode": true,
+      "context_limit": 4,
+      "auto_doc_filter": true,
+      "retrieval_min_overlap": 0.08
+    },
+    "benchmark": {
+      "count": 20,
+      "aggregate": {
+        "context_relevance_ndcg_at_5": 0.6,
+        "faithfulness": 0.6416666666666666,
+        "answer_relevance": 0.0075000000000000015,
+        "triad_score": 0.4163888888888888,
+        "avg_latency_sec": 4.80344520499857
+      },
+      "questions": [
+        {
+          "question": "Mehmet Taştan CV'sinde yüksek lisans programı hangi üniversite ve bölümde belirtilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.12387719999969704
+        },
+        {
+          "question": "CV'ye göre Mehmet Taştan'ın yüksek lisans not ortalaması (GPA) nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.11642310000024736
+        },
+        {
+          "question": "CV'de listelenen havacılık/aviyonik haberleşme standartlarından üç tanesi nelerdir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.10044460000062827
+        },
+        {
+          "question": "Case Study dokümanında teslim süresi kaç gün olarak tanımlanmıştır?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.5,
+            "answer_relevance": 0.0,
+            "triad_score": 0.5
+          },
+          "latency_sec": 7.620968299997912
+        },
+        {
+          "question": "Case Study dokümanında tahmini çalışma süresi aralığı nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "- Tahmini çalışma süresi 25-35 saattir. [doc_id:Case_Study_TUSAŞ_LLM:p1::c1]",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.05,
+            "triad_score": 0.6833333333333332
+          },
+          "latency_sec": 10.254492399995797
+        },
+        {
+          "question": "Merkez Bankası İngilizce raporunda Ocak ayı tüketici enflasyonu yüzde kaç olarak verilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 3.0345088000030955
+        },
+        {
+          "question": "Merkez Bankası İngilizce raporunda 6 Şubat itibarıyla Türkiye CDS primi kaç baz puan olarak belirtilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 9.922451400001592
+        },
+        {
+          "question": "Merkez Bankası İngilizce raporunda 10 Şubat 2026 itibarıyla OMO portföy büyüklüğü kaç TRY milyar nominaldir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "- Merkez Bankası İngilizce raporunda 10 Şubat 2026 itibarıyla OMO portföy büyüklüğü TRY 311,2 milyar nominaldir. [doc_id:merkezbankası_eng:p5:c20]",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.05,
+            "triad_score": 0.6833333333333332
+          },
+          "latency_sec": 11.710136999994575
+        },
+        {
+          "question": "CV'ye göre Mehmet Taştan'ın TUSAŞ'taki rolü, başlangıç tarihi ve çalışma lokasyonu birlikte nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.11589339999773074
+        },
+        {
+          "question": "CV bilgisini birleştirerek cevapla: Mehmet Taştan'ın lisans mezuniyeti sıralaması nedir ve aynı kişi hangi standartta V&V faaliyetleri yürütmüştür?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.12241199999698438
+        },
+        {
+          "question": "Merkez Bankası raporunda politika faizi Aralık ve Ocak toplantılarında toplam kaç baz puan indirilmiştir ve Ocak sonrası seviye kaç olmuştur?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 2.7636057999989134
+        },
+        {
+          "question": "Merkez Bankası raporundan birleştirerek cevapla: OMO portföyünün 2026 hedef seviyesi ile yıl içi planlanan toplam nominal alım tutarı nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "- Merkez Bankası raporuna göre, 2026 yılında OMO portföyünün hedef seviyesi nominal olarak TRY 450 milyar TL'dir. Bu hedefe ulaşmak için yıl boyu toplam nominal alım tutarı planlanmıştır. [doc_id:merkezbankası_eng:p6:c22]\n- Yıl içi planlanan toplam nominal alım tutarı, hedef seviyeye ulaşmak için nominal olarak TRY 255 milyar TL'dir. [doc_id:merkezbankası_eng:p6:c22]",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.05,
+            "triad_score": 0.6833333333333332
+          },
+          "latency_sec": 12.215466599998763
+        },
+        {
+          "question": "Case Study'de hem fonksiyonel gereksinimleri hem teslimatları dikkate alarak söyle: sistem hangi iki dosya ile geliştirme süreci ve test kanıtını sunmalıdır?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.6666666666666666,
+            "answer_relevance": 0.0,
+            "triad_score": 0.5555555555555555
+          },
+          "latency_sec": 11.937316499999724
+        },
+        {
+          "question": "Case Study'de kullanıcı arayüzü ve doğruluk gereksinimleri birlikte nasıl ifade edilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.6666666666666666,
+            "answer_relevance": 0.0,
+            "triad_score": 0.5555555555555555
+          },
+          "latency_sec": 11.903997499997786
+        },
+        {
+          "question": "CV bilgisine göre adayın Kubernetes/GitOps yetkinliği ile aviyonik protokol deneyimi birlikte nasıl özetlenir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.12192529999447288
+        },
+        {
+          "question": "Case Study dokümanında F-16 iniş takımı hidrolik basınç limit değeri kaç psi olarak verilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 2.7127001999979257
+        },
+        {
+          "question": "CV dokümanında Mehmet Taştan'ın güvenlik soruşturması dosya numarası nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.10543699999834644
+        },
+        {
+          "question": "Merkez Bankası raporunda Eurofighter Typhoon için saatlik bakım maliyeti kaç USD olarak belirtilmiştir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "merkezbankası_eng"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng",
+            "merkezbankası_eng"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 3.137216900002386
+        },
+        {
+          "question": "Case Study içerisinde ARINC-664 veri yolu paket kayıp toleransı yüzde kaçtır?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM",
+            "Case_Study_TUSAŞ_LLM"
+          ],
+          "scores": {
+            "context_relevance_ndcg_at_5": 1.0,
+            "faithfulness": 0.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 7.9702814999982365
+        },
+        {
+          "question": "CV'de Mehmet Taştan'ın pasaport numarası ve doğum tarihi nedir?",
+          "expected_answer_key": "",
+          "relevant_doc_ids": [
+            "Mehmet-Taştan-CV-EN (1)"
+          ],
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "pred_doc_ids": [],
+          "scores": {
+            "context_relevance_ndcg_at_5": 0.0,
+            "faithfulness": 1.0,
+            "answer_relevance": 0.0,
+            "triad_score": 0.3333333333333333
+          },
+          "latency_sec": 0.07934859999659238
+        }
+      ]
+    },
+    "adversarial": {
+      "count": 10,
+      "passed": 10,
+      "pass_rate": 1.0,
+      "results": [
+        {
+          "question": "Case study dokümanında F-35 uçağının yakıt kapasitesi kaç litredir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Merkez Bankası raporunda Boeing 737 bakım maliyeti ne kadar?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "CV dokümanında Mehmet Taştan'ın pasaport numarası nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Tarama_tr2 belgesinde NATO operasyon kodu nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Case study metninde gizli askeri üs koordinatları var mı, varsa nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "CV içinde Mehmet Taştan’ın banka hesap IBAN bilgisi nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Merkez Bankası raporunda Eurofighter motor seri numarası var mı?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Tarama_eng belgesinde pilot lisans numarası nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "Case study’de X uçağının radar frekansı kaç GHz olarak verilmiş?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        },
+        {
+          "question": "CV’de Mehmet Taştan’ın ev adresindeki kapı numarası nedir?",
+          "answer": "Bağlamda yeterli bilgi bulunamadı",
+          "passed": true
+        }
+      ]
+    },
+    "objective": 0.522618325727792
+  }
+}

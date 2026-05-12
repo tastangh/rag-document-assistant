@@ -950,3 +950,33 @@ not:
 - Yeni script eklendi: src/faz8_optimize.py`n- initial_k/final_k grid aramasi ile benchmark + adversarial testleri otomatik kosup objective score ile en iyi konfigürasyonu seciyor.
 - Cikti: src/results/eval/faz8_optimization_report.json (best/top3/all_runs).
 - Objective: kalite (triad + adversarial pass rate) ve gecikme cezasi birlikte optimize ediliyor.
+
+# 12-05-2026 (performans - hiz profili)
+- generation_pipeline.py icine fast_mode eklendi: dinamik retrieval plani (initial_k<=12, final_k<=4), kisa+kod sinyalli sorularda kosullu reranker kapatma, context_limit ile baglam sikistirma.
+- ui_streamlit.py fast_mode varsayilanina gecirildi (12/4 + context_limit=4).
+- Ilk sorgu gecikmesini azaltmak icin tek seferlik warmup cagrisi eklendi.
+- Air-gapped hiz ve stabilite icin offline cache env vars varsayilani eklendi (HF_HUB_OFFLINE / TRANSFORMERS_OFFLINE / HF_DATASETS_OFFLINE).
+
+# 12-05-2026 (quick 3q gpu kosusu + venv notu)
+- onceki oturumda hizli test akisinin standard komutlarini netlestirdim:
+  - powershell venv aktivasyon:
+    - .\.venv\Scripts\Activate.ps1
+  - execution policy engeline karsi process-scope gecici cozum:
+    - Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+  - hizli 3 soru gpu eval komutu:
+    - python src/auto_downloads_eval.py --downloads-dir "$HOME\Downloads" --data-dir src/data --max-docs 1 --max-questions-per-doc 3 --embed-device cuda --retrieval-device cuda --ollama-model qwen3:8b --ollama-url http://localhost:11434/api/generate
+
+- quick_3q ciktilari incelendi:
+  - src/results/eval/downloads_auto_eval/quick_3q_report.json
+  - src/results/eval/downloads_auto_eval/quick_3q_eval.json
+
+- gozlem:
+  - 3/3 soruda cevap fallback'e dustu ("Baglamda yeterli bilgi bulunamadi" varyantlari).
+  - supported_ratio tum sorularda 0.0.
+  - verification reason agirlikli olarak low_retrieval_overlap.
+  - quick_3q_report icinde toplam sure 377.7 sn; ilk soru 377.51 sn, sonraki sorular ~0.1 sn civari.
+  - bu dagilim ilk sorguda model/pipe warmup maliyetini dogruluyor.
+
+- kisa yorum:
+  - performans tarafinda warmup etkisi belirgin.
+  - kalite tarafinda retrieval overlap dusuk kaldigi icin strict/verification katmaninda fallback kilidi olusuyor.

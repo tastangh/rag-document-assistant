@@ -161,7 +161,12 @@ def parse_blocks(doc_id: str, page_num: int, page_text: str) -> List[Block]:
 
 
 def normalize_chunk_text(text: str) -> str:
-    return re.sub(r"\s+", " ", text).strip()
+    cleaned = (text or "")
+    # OCR kaynakli kontrol/yerine gecen bozuk karakterleri temizle.
+    cleaned = cleaned.replace("\uFFFD", " ")
+    cleaned = re.sub(r"[\x00-\x08\x0B\x0C\x0E-\x1F]", " ", cleaned)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned
 
 
 def is_noisy_text(text: str, min_chunk_size: int) -> bool:
@@ -173,6 +178,10 @@ def is_noisy_text(text: str, min_chunk_size: int) -> bool:
     if alnum_count == 0:
         return True
     if (alnum_count / max(non_space_count, 1)) < 0.22:
+        return True
+    # Asiri sembol/karma karakter oranli OCR coplerini ele.
+    symbol_count = sum((not ch.isalnum()) and (not ch.isspace()) for ch in stripped)
+    if (symbol_count / max(non_space_count, 1)) > 0.45:
         return True
     if len(stripped) < min_chunk_size:
         return True

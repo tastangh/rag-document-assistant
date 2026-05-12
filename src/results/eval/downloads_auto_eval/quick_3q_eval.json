@@ -1,0 +1,25 @@
+{
+  "results": [
+    {
+      "question": "EBSCO-Metadata-05_09_2026 belgesinin ana konusu nedir?",
+      "answer": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": 3,
+      "supported_ratio": 0.0,
+      "guardrail_available": null
+    },
+    {
+      "question": "EBSCO-Metadata-05_09_2026 belgesinde hangi temel y?ntem ?neriliyor?",
+      "answer": "Baglamda yeterli bilgi yok.",
+      "sources": 3,
+      "supported_ratio": 0.0,
+      "guardrail_available": false
+    },
+    {
+      "question": "EBSCO-Metadata-05_09_2026 belgesinde raporlanan ana performans bulgusu nedir?",
+      "answer": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": 3,
+      "supported_ratio": 0.0,
+      "guardrail_available": null
+    }
+  ]
+}

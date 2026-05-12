@@ -3,3 +3,4 @@
 /.paddlex_cache
 /.pycache
 /src/.paddlex_cache
+/models

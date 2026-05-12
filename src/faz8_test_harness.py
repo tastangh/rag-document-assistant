@@ -162,6 +162,10 @@ def run_benchmark(
     initial_k: int,
     final_k: int,
     retrieval_device: str,
+    fast_mode: bool = True,
+    context_limit: int = 4,
+    auto_doc_filter: bool = True,
+    retrieval_min_overlap: float = 0.08,
 ) -> Dict[str, Any]:
     logger.info("Benchmark baslatiliyor... file=%s", benchmark_file)
     rows = _load_jsonl(benchmark_file)
@@ -192,6 +196,10 @@ def run_benchmark(
             doc_id=(rel[0] if rel else None),
             strict_guardrail=True,
             device=retrieval_device,
+            fast_mode=fast_mode,
+            context_limit=context_limit,
+            auto_doc_filter=auto_doc_filter,
+            retrieval_min_overlap=retrieval_min_overlap,
         )
         t1 = time.perf_counter()
 
@@ -270,6 +278,10 @@ def run_adversarial(
     initial_k: int,
     final_k: int,
     retrieval_device: str,
+    fast_mode: bool = True,
+    context_limit: int = 4,
+    auto_doc_filter: bool = True,
+    retrieval_min_overlap: float = 0.08,
 ) -> Dict[str, Any]:
     logger.info("Adversarial test baslatiliyor... file=%s", adversarial_file)
     rows = _load_jsonl(adversarial_file)
@@ -293,6 +305,10 @@ def run_adversarial(
             ollama_url=ollama_url,
             strict_guardrail=True,
             device=retrieval_device,
+            fast_mode=fast_mode,
+            context_limit=context_limit,
+            auto_doc_filter=auto_doc_filter,
+            retrieval_min_overlap=retrieval_min_overlap,
         )
         ans = str(res.get("answer", "")).strip()
         passed = ans in SAFE_REJECTS
@@ -443,6 +459,10 @@ def main() -> None:
     parser.add_argument("--ollama-url", default=OLLAMA_URL)
     parser.add_argument("--initial-k", type=int, default=24)
     parser.add_argument("--final-k", type=int, default=5)
+    parser.add_argument("--fast-mode", action="store_true")
+    parser.add_argument("--context-limit", type=int, default=4)
+    parser.add_argument("--disable-auto-doc-filter", action="store_true")
+    parser.add_argument("--retrieval-min-overlap", type=float, default=0.08)
     parser.add_argument("--pass-threshold", type=float, default=0.60)
     parser.add_argument("--perf-doc", default="")
     parser.add_argument("--run-perf", action="store_true")
@@ -467,6 +487,10 @@ def main() -> None:
         initial_k=args.initial_k,
         final_k=args.final_k,
         retrieval_device=args.retrieval_device,
+        fast_mode=args.fast_mode,
+        context_limit=args.context_limit,
+        auto_doc_filter=(not args.disable_auto_doc_filter),
+        retrieval_min_overlap=args.retrieval_min_overlap,
     )
 
     adversarial = run_adversarial(
@@ -478,6 +502,10 @@ def main() -> None:
         initial_k=args.initial_k,
         final_k=args.final_k,
         retrieval_device=args.retrieval_device,
+        fast_mode=args.fast_mode,
+        context_limit=args.context_limit,
+        auto_doc_filter=(not args.disable_auto_doc_filter),
+        retrieval_min_overlap=args.retrieval_min_overlap,
     )
 
     session_iso = run_session_isolation_check()

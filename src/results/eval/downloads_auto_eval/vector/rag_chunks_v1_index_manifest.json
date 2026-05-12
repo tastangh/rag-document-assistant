@@ -1,0 +1,9 @@
+{
+  "collection_name": "rag_chunks_v1",
+  "persist_dir": "src\\results\\eval\\downloads_auto_eval\\vector",
+  "source_artifacts_dir": "src\\results\\eval\\downloads_auto_eval\\chunks",
+  "indexed_chunk_count": 3,
+  "embedding_dim": 1024,
+  "model_name": "newmindai/Mursit-Large-TR-Retrieval",
+  "built_at": "2026-05-12T11:41:27.709844+00:00"
+}

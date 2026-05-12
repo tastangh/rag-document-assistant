@@ -6,12 +6,13 @@ Faz 7: session izolasyonu + state kaliciligi.
 from __future__ import annotations
 
 import json
+import os
 import re
 import secrets
 import time
 import uuid
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import streamlit as st
 
@@ -269,6 +270,42 @@ def _render_sources(sources: List[Dict[str, Any]]) -> None:
             )
 
 
+def _doc_id_from_doc_entry(doc: Dict[str, Any]) -> Optional[str]:
+    path = str(doc.get("path", "")).strip()
+    if not path:
+        return None
+    try:
+        return Path(path).stem
+    except Exception:
+        return None
+
+
+def _resolve_selected_doc_id() -> Optional[str]:
+    ready_docs = [d for d in st.session_state.get("docs", []) if d.get("status") == "ready"]
+    if not ready_docs:
+        return None
+
+    doc_options = []
+    for d in ready_docs:
+        did = _doc_id_from_doc_entry(d)
+        if did:
+            doc_options.append((str(d.get("name", did)), did))
+    if not doc_options:
+        return None
+
+    if len(doc_options) == 1:
+        return doc_options[0][1]
+
+    labels = ["Tum hazir dokumanlar"] + [name for name, _ in doc_options]
+    selected = st.selectbox("Soru kapsamı", labels, index=0)
+    if selected == "Tum hazir dokumanlar":
+        return None
+    for name, did in doc_options:
+        if name == selected:
+            return did
+    return None
+
+
 def main() -> None:
     st.set_page_config(page_title="Belge Asistani", page_icon=":page_facing_up:", layout="centered")
 
@@ -291,6 +328,7 @@ def main() -> None:
         st.session_state.session_id = session_id
         st.session_state.access_key = access_key
         st.session_state.bootstrapped = True
+        st.session_state.warmup_done = False
     else:
         st.session_state.setdefault("messages", [])
         st.session_state.setdefault("ready", False)
@@ -298,6 +336,12 @@ def main() -> None:
         st.session_state.setdefault("last_error", "")
         st.session_state.setdefault("session_id", session_id)
         st.session_state.setdefault("access_key", access_key)
+        st.session_state.setdefault("warmup_done", False)
+
+    # Offline cache tercihleri (air-gapped uyumu)
+    os.environ.setdefault("HF_HUB_OFFLINE", "1")
+    os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+    os.environ.setdefault("HF_DATASETS_OFFLINE", "1")
 
     st.title("Belge Asistani")
     st.caption("1) PDF/resim yukle  2) Belgeleri Hazirla  3) Soru sor")
@@ -355,12 +399,16 @@ def main() -> None:
                 st.caption(f"OCR cihazi: {'gpu' if result.get('ocr_gpu_enabled') else 'cpu'}")
                 for f in result.get("failed", []):
                     st.caption(f"{f['file']}: {f['error']}")
+                st.session_state.warmup_done = False
             _save_state(paths, session_id=session_id, access_key=access_key)
 
     if st.session_state.docs:
         with st.expander("Aktif dokumanlar", expanded=False):
             for d in st.session_state.docs:
                 st.markdown(f"- `{d.get('name','')}` ({d.get('status','unknown')})")
+    selected_doc_id = _resolve_selected_doc_id()
+    if selected_doc_id:
+        st.caption(f"Aktif doc_id filtresi: `{selected_doc_id}`")
 
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
@@ -385,16 +433,34 @@ def main() -> None:
             else:
                 with st.spinner("Cevap uretiliyor..."):
                     try:
+                        if not st.session_state.get("warmup_done", False):
+                            _ = ask_question(
+                                question="dokuman ozeti",
+                                persist_dir=paths["vector_dir"],
+                                collection_name=DEFAULT_COLLECTION,
+                                initial_k=8,
+                                final_k=3,
+                                device=RETRIEVAL_DEVICE,
+                                disable_rerank=True,
+                                model_name=OLLAMA_MODEL,
+                                strict_guardrail=True,
+                                fast_mode=True,
+                                doc_id=selected_doc_id,
+                            )
+                            st.session_state.warmup_done = True
                         result = ask_question(
                             question=prompt,
                             persist_dir=paths["vector_dir"],
                             collection_name=DEFAULT_COLLECTION,
-                            initial_k=16,
-                            final_k=5,
+                            initial_k=12,
+                            final_k=4,
                             device=RETRIEVAL_DEVICE,
                             disable_rerank=False,
                             model_name=OLLAMA_MODEL,
                             strict_guardrail=True,
+                            fast_mode=True,
+                            context_limit=4,
+                            doc_id=selected_doc_id,
                         )
                         answer = str(result.get("answer", ""))
                         sources = list(result.get("sources", []) or [])

@@ -119,13 +119,17 @@
           "text_preview": "[Dokuman: lagovad | Sayfa: 20 | Bolum: ROOT | Tablo: false] ce Daily Accident 799 427 Crowd Violence 1741 340 235 344 198 Sport 86 45 Animal Attack Animal 84 870 427 427 Store Robbery 335 Mugging 132 Carjack 68 (b) Th..."
         }
       ]
+    },
+    {
+      "role": "user",
+      "content": "dekont'ta parayı kim atmış "
     }
   ],
   "ready": true,
   "docs": [
     {
-      "name": "lagovad.pdf",
-      "path": "data\\sessions\\131fad54-4dfd-45bb-9549-dd20a46770e4\\uploads\\lagovad.pdf",
+      "name": "Dekont.PDF",
+      "path": "data\\sessions\\131fad54-4dfd-45bb-9549-dd20a46770e4\\uploads\\Dekont.PDF",
       "status": "ready"
     }
   ],
