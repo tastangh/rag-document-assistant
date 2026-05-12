@@ -213,18 +213,101 @@ def clean_answer(answer: str) -> str:
     return text
 
 
+def build_general_chat_prompt(
+    question: str,
+    system_instructions: Optional[str] = None,
+    thinking_level: Optional[str] = None,
+) -> str:
+    extra_system = (system_instructions or "").strip()
+    extra_block = f"\nEK SISTEM TALIMATI:\n{extra_system}\n" if extra_system else ""
+    thinking_block = _resolve_thinking_instruction(thinking_level=thinking_level)
+    return (
+        "Sen yardimci bir yapay zeka asistansin.\n"
+        "Kullaniciyla dogal, kibar ve acik bir sekilde konus.\n"
+        "Bilmedigin bir konuda eminmis gibi davranma.\n"
+        f"{extra_block}"
+        f"DUSUNME KILIDI:\n{thinking_block}\n\n"
+        f"KULLANICI MESAJI:\n{question}\n\n"
+        "Yanit:"
+    )
+
+
+def chat_without_rag(
+    question: str,
+    model_name: str = DEFAULT_OLLAMA_MODEL,
+    ollama_url: str = DEFAULT_OLLAMA_URL,
+    system_instructions: Optional[str] = None,
+    thinking_level: Optional[str] = None,
+    temperature: Optional[float] = None,
+    top_k: Optional[int] = None,
+    top_p: Optional[float] = None,
+    repeat_penalty: Optional[float] = None,
+) -> Dict[str, Any]:
+    prompt = build_general_chat_prompt(
+        question=question,
+        system_instructions=system_instructions,
+        thinking_level=thinking_level,
+    )
+    effective_temperature = 0.0 if temperature is None else float(temperature)
+    answer = call_ollama(
+        prompt=prompt,
+        model_name=model_name,
+        ollama_url=ollama_url,
+        temperature=effective_temperature,
+        top_k=top_k,
+        top_p=top_p,
+        repeat_penalty=repeat_penalty,
+    )
+    return {
+        "question": question,
+        "answer": answer,
+        "sources": [],
+        "verification": {
+            "claims": [],
+            "claim_count": 0,
+            "supported_count": 0,
+            "supported_ratio": None,
+            "citation_coverage": None,
+            "confidence": "n/a",
+            "hallucination_risk": "n/a",
+            "fallback_used": False,
+            "mode": "chat_without_rag",
+        },
+        "config": {
+            "model_name": model_name,
+            "temperature": effective_temperature,
+            "top_k": top_k,
+            "top_p": top_p,
+            "repeat_penalty": repeat_penalty,
+            "thinking_level": str(thinking_level or "medium"),
+            "system_instructions_enabled": bool((system_instructions or "").strip()),
+            "mode": "chat_without_rag",
+        },
+    }
+
+
 def call_ollama(
     prompt: str,
     model_name: str,
     ollama_url: str = DEFAULT_OLLAMA_URL,
     temperature: float = 0.0,
+    top_k: Optional[int] = None,
+    top_p: Optional[float] = None,
+    repeat_penalty: Optional[float] = None,
     timeout_sec: int = 180,
 ) -> str:
+    options: Dict[str, Any] = {"temperature": temperature}
+    if top_k is not None:
+        options["top_k"] = int(top_k)
+    if top_p is not None:
+        options["top_p"] = float(top_p)
+    if repeat_penalty is not None:
+        options["repeat_penalty"] = float(repeat_penalty)
     payload = {
         "model": model_name,
         "prompt": prompt,
         "stream": False,
-        "options": {"temperature": temperature},
+        "options": options,
     }
     body = json.dumps(payload).encode("utf-8")
     req = Request(ollama_url, data=body, method="POST")
@@ -590,6 +673,12 @@ def ask_question(
     system_instructions: Optional[str] = None,
     temperature: Optional[float] = None,
     thinking_level: Optional[str] = None,
+    top_k: Optional[int] = None,
+    top_p: Optional[float] = None,
+    repeat_penalty: Optional[float] = None,
+    guardrail_threshold: Optional[float] = None,
+    citation_min_coverage: float = 1.0,
+    allow_extractive_on_guardrail_fail: bool = False,
 ) -> Dict[str, Any]:
     effective_initial_k = initial_k
     effective_final_k = final_k
@@ -717,11 +806,15 @@ def ask_question(
         thinking_level=thinking_level,
     )
     effective_temperature = 0.0 if temperature is None else float(temperature)
+    effective_guardrail_threshold = float(GUARDRAIL_THRESHOLD if guardrail_threshold is None else guardrail_threshold)
     raw_answer = call_ollama(
         prompt=prompt,
         model_name=model_name,
         ollama_url=ollama_url,
         temperature=effective_temperature,
+        top_k=top_k,
+        top_p=top_p,
+        repeat_penalty=repeat_penalty,
     )
     verification = verify_answer(raw_answer, contexts)
     filtered_answer = _filter_supported_claims(raw_answer=raw_answer, verification=verification)
@@ -736,12 +829,24 @@ def ask_question(
         if guardrail_available:
             if (
                 verification.get("confidence_level") == "low"
-                or float(verification.get("supported_ratio", 0.0)) < GUARDRAIL_THRESHOLD
-                or float(verification.get("citation_coverage", 0.0)) < 1.0
+                or float(verification.get("supported_ratio", 0.0)) < effective_guardrail_threshold
+                or float(verification.get("citation_coverage", 0.0)) < float(citation_min_coverage)
                 or not filtered_answer
             ):
-                answer = FALLBACK_ANSWER
-                verification["fallback_used"] = True
+                if allow_extractive_on_guardrail_fail:
+                    extractive = _build_extractive_cited_answer(contexts, max_items=min(4, len(contexts)))
+                    if extractive.strip():
+                        answer = extractive
+                        verification["fallback_used"] = False
+                        verification["reason"] = "strict_guardrail_extractive_answer"
+                    else:
+                        answer = FALLBACK_ANSWER
+                        verification["fallback_used"] = True
+                        verification["reason"] = "strict_guardrail_blocked_unsupported"
+                else:
+                    answer = FALLBACK_ANSWER
+                    verification["fallback_used"] = True
+                    verification["reason"] = "strict_guardrail_blocked_unsupported"
         else:
             # Faz 8 guvenlik modu: guardrail model yoksa halusinasyon riskini sifira yaklastirmak icin cevap kapat.
             answer = FALLBACK_ANSWER
@@ -781,6 +886,11 @@ def ask_question(
             "temperature": effective_temperature,
             "thinking_level": str(thinking_level or "medium"),
             "system_instructions_enabled": bool((system_instructions or "").strip()),
+            "top_k": top_k,
+            "top_p": top_p,
+            "repeat_penalty": repeat_penalty,
+            "guardrail_threshold": effective_guardrail_threshold,
+            "citation_min_coverage": float(citation_min_coverage),
         },
     }
 

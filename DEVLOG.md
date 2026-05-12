@@ -1,72 +1,71 @@
-﻿06-05-2026
-Case Study'deki sistem iÃ§in neleri yapmama gerek olduÄŸunu bularak baÅŸladÄ±m.
-LLM yardÄ±mÄ± ile bu proje iÃ§in gerekli ihtiyaÃ§larÄ± Ã§Ä±karttÄ±m.
-Gerekli ihtiyaÃ§larÄ± fazlara bÃ¶ldÃ¼m.
+06-05-2026
+Case Study'deki sistem için neleri yapmama gerek olduğunu bularak başladım.
+LLM yardımı ile bu proje için gerekli ihtiyaçları çıkarttım.
+Gerekli ihtiyaçları fazlara böldüm.
 
-Ã‡Ä±kardÄ±ÄŸÄ±m fazlar;
-# Faz 1: GÃ¶rÃ¼ntÃ¼ Ä°ÅŸleme ve Optik Karakter TanÄ±ma (OCR) Mimarisi Kurma
-Bir kere her ÅŸeyden Ã¶nce belge ve gÃ¶rÃ¼ntÃ¼leden metin Ã§Ä±karÄ±mÄ± yapacaÄŸÄ±z. gÃ¶rÃ¼ntÃ¼lerden metin Ã§Ä±karmayÄ± koÅŸaylaÅŸtÄ±rma iÃ§in OCR optik karakter tanÄ±ma mimarisini kullanmamÄ±z gerekiyor.
-# Faz 2: Metin BÃ¶lÃ¼tleme (Chunking) ve VektÃ¶r GÃ¶mme (Embedding)
-YTÃœ YL de edindiÄŸim NLP dersi bilgilerim ve projelerime gÃ¶re metinlerin ve kelimelerin ngram ve chunklarÄ± Ã§ok Ã¶nemli. AyrÄ±ca vektÃ¶r uzaylarÄ± da bizim iÃ§in Ã§ok Ã¶nemli. BÃ–lÃ¼nen metinler LLM tarafÄ±ndan anlaÅŸÄ±labilmesi iÃ§in belirli embedding modeller kullanÄ±lmalÄ± . AyrÄ±ca diÄŸer bir Ã¶ngÃ¶rÃ¼m tÃ¼rkÃ§e sondan eklemeli bir dil olduÄŸu iÃ§in bize sorun Ã§Ä±karacaktÄ±r. 
-# Faz 3 : VektÃ¶r veri tabanÄ± ve geri getirme 
-Daha Ã¶nce bir projede de kullandÄ±ÄŸÄ±m gibi kosinÃ¼s benzerliÄŸi ile vektÃ¶r arama yapmalÄ±yÄ±z. bir vektÃ¶r veritabanÄ± seÃ§ip bizim vektÃ¶rÃ¼mÃ¼ze en benzer yanÄ± sorulan soruya en benzer vektÃ¶rÃ¼ bulmalÄ±yÄ±z.  hazÄ±r bir veri tabanÄ± da olabilir , belgeleri parÃ§alayÄ±p biz de bir ÅŸeyler yapabiliriz. 
+Çıkardığım fazlar;
+# Faz 1: Görüntü İşleme ve Optik Karakter Tanıma (OCR) Mimarisi Kurma
+Bir kere her şeyden önce belge ve görüntüleden metin çıkarımı yapacağız. görüntülerden metin çıkarmayı koşaylaştırma için OCR optik karakter tanıma mimarisini kullanmamız gerekiyor.
+# Faz 2: Metin Bölütleme (Chunking) ve Vektör Gömme (Embedding)
+YTÜ YL de edindiğim NLP dersi bilgilerim ve projelerime göre metinlerin ve kelimelerin ngram ve chunkları çok önemli. Ayrıca vektör uzayları da bizim için çok önemli. BÖlünen metinler LLM tarafından anlaşılabilmesi için belirli embedding modeller kullanılmalı . Ayrıca diğer bir öngörüm türkçe sondan eklemeli bir dil olduğu için bize sorun çıkaracaktır. 
+# Faz 3 : Vektör veri tabanı ve geri getirme 
+Daha önce bir projede de kullandığım gibi kosinüs benzerliği ile vektör arama yapmalıyız. bir vektör veritabanı seçip bizim vektörümüze en benzer yanı sorulan soruya en benzer vektörü bulmalıyız.Asında yaptığımız bölütlediğimiz chunkları anlamsal uzayda birer vektör yapıp onların birbiriyle anlamsal yakınlığına bakmak. o yüzden soruyu sorduğumda o soruya belgedeki anlamsal uzayda en yakın kavramları bize cevap olarak getirecektir.  hazır bir veri tabanı da olabilir , belgeleri parçalayıp biz de bir şeyler yapabiliriz. 
+Burda büyük ihtimalle direkt başarı elde edemiyeceğiz.  bir sıralama vb yapmalıyız ayrıca belki de blue score gibi şeyler de kullanabiliriz bilmiyorum.
+# Faz 4: Yerel Büyük Dil Modeli (LLM) Entegrasyonu ve Ollama
+Yerel bir llm ile çalışmalıyız. LLM çalıştırmak için qwen3-coder için daha önce ollama kullanmıştım onla çalıştırırım diye düşündüm. Modelfile vb oluşturulabilir belki 
+# Faz 5: Halüsinasyon Önleme ve Çıktı Doğrulama Stratejileri
+Yine google gemini deep research gibi kanıt isteme olabilir llm'den., modelin thinking özelliği adım adım çalışabilir , yanıtını modele doğrulattırırız. 
+diğer bir çözüm olarak halüsinasyon tespiti frameworkleri kullanabilriiz. 
+# Faz 6: Kullanıcı Arayüzü Geliştirme 
+Normalde react kullanabiliriz ama direkt bu iş için streamlit diye bir şey varmış önce onu deneyeceğim.
+# Faz 7: Test ve Doğrulama Metodolojisi 
+Test için birden fazla makale pdf , belge görüntüsü ile denemeliyiz.
+context precision, recall vb değerlerini incelemeliyiz edge case ve normal test senaryoları geliştirmeliyiz .
+# Faz 8: Dökümantasyon ve Video 
+istenen md dosyaları son hale getirilir.
 
-Burda bÃ¼yÃ¼k ihtimalle direkt baÅŸarÄ± elde edemiyeceÄŸiz.  bir sÄ±ralama vb yapmalÄ±yÄ±z ayrÄ±ca belki de blue score gibi ÅŸeyler de kullanabiliriz bilmiyorum.
-# Faz 4: Yerel BÃ¼yÃ¼k Dil Modeli (LLM) Entegrasyonu ve Ollama
-yerel bir llm ile Ã§alÄ±ÅŸmalÄ±yÄ±z. LLM Ã§alÄ±ÅŸtÄ±rmak iÃ§in qwen3-coder iÃ§in daha Ã¶nce ollama kullanmÄ±ÅŸtÄ±m onla Ã§alÄ±ÅŸtÄ±rÄ±rÄ±m diye dÃ¼ÅŸÃ¼ndÃ¼m. Modelfile vb oluÅŸturulabilir belki 
-# Faz 5: HalÃ¼sinasyon Ã–nleme ve Ã‡Ä±ktÄ± DoÄŸrulama Stratejileri
-yine google gemini deep research gibi kanÄ±t isteme olabilir llm'den., modelin thinking Ã¶zelliÄŸi adÄ±m adÄ±m Ã§alÄ±ÅŸabilir , yanÄ±tÄ±nÄ± modele doÄŸrulattÄ±rÄ±rÄ±z. 
-diÄŸer bir Ã§Ã¶zÃ¼m olarak lettucedetect gibi halÃ¼sinasyon tespiti frameworkleri kullanabilriiz. 
-# Faz 6: KullanÄ±cÄ± ArayÃ¼zÃ¼ GeliÅŸtirme 
-Normalde react kullanabiliriz ama direkt bu iÅŸ iÃ§in streamlit diye bir ÅŸey varmÄ±ÅŸ Ã¶nce onu deneyeceÄŸim.
-# Faz 7: Test ve DoÄŸrulama Metodolojisi 
-Test iÃ§in birden fazla makale pdf , belge gÃ¶rÃ¼ntÃ¼sÃ¼ ile denemeliyiz.
-context precision, recall vb deÄŸerlerini incelemeliyiz edge case ve normal test senaryolarÄ± geliÅŸtirmeliyiz .
-# Faz 8: DÃ¶kÃ¼mantasyon ve Video 
-istenen md dosyalarÄ± son hale getirilir.
-
-# faz 1 e baÅŸlandÄ± 
-Åimdi yapmamÄ±z gereken ilk aÅŸama pdf ve resimleri OCR Ä°le okuyup belirli bir formata Ã§evirmek. Burdaki sÄ±kÄ±ntÄ± olabilecek ÅŸeyler tablolar ,tÃ¼rkÃ§e karakterler ve pdf iÃ§indeki resimler vb olabilir diye Ã¶ngÃ¶rÃ¼yorum.
- PDF/JPG/PNG dosyalarÄ±nÄ± alÄ±p RAG iÃ§in tek bir Markdown Ã§Ä±ktÄ±sÄ± Ã¼retmeyi uygulamayÄ± dÃ¼ÅŸÃ¼nÃ¼yorum.
+# Faz 1 (06-05-2026)
+Şimdi yapmamız gereken ilk aşama pdf ve resimleri OCR İle okuyup belirli bir formata çevirmek. Burdaki sıkıntı olabilecek şeyler tablolar ,türkçe karakterler ve pdf içindeki resimler vb olabilir diye öngörüyorum.
+ PDF/JPG/PNG dosyalarını alıp RAG için tek bir Markdown çıktısı üretmeyi uygulamayı düşünüyorum.
  
-  `requirements.txt` dosyasÄ±nÄ± oluÅŸturdum ve temel baÄŸÄ±mlÄ±lÄ±klarÄ± ekledim (`paddleocr`, `paddlepaddle`, `pymupdf`, `opencv-python-headless`, `numpy`, `beautifulsoup4`). paddle ocr kurulumunda sorunlar yaÅŸadÄ±m fakat Ã§Ã¶zdÃ¼m.
+`requirements.txt` dosyasını oluşturdum ve temel bağımlılıkları ekledim (`paddleocr`, `paddlepaddle`, `pymupdf`, `opencv-python-headless`, `numpy`, `beautifulsoup4`). paddle ocr kurulumunda sorunlar yaşadım fakat çözdüm.
 
-  document_processor.py diye dosya oluÅŸturdum faz 1 de planlanan dÃ¶kÃ¼man resim okuma ve formatlama iÅŸlemini burada yapacaÄŸÄ±m.
+document_processor.py diye dosya oluşturdum faz 1 de planlanan döküman resim okuma ve formatlama işlemini burada yapacağım.
 
-py'a girdi kontrolÃ¼ ekledimn . validate_input func ile artÄ±k tanÄ±mladÄ±ÄŸÄ±m girdiler haricinde format kabul edilmiyor. 
+py'a girdi kontrolü ekledimn . validate_input func ile artık tanımladığım girdiler haricinde format kabul edilmiyor. 
 
-import fitz  # PyMuPDF diye biÅŸi buldum llm ile konuÅŸarak bunun pdf i sayfa sayfa gÃ¶rsele Ã§evirdiÄŸini Ã¶ÄŸrendim.    _pdf_to_images i fitz kullanarak yapmaya Ã§alÄ±ÅŸÄ±ldÄ±.
+import fitz  # PyMuPDF diye bişi buldum llm ile konuşarak bunun pdf i sayfa sayfa görsele çevirdiğini öğrendim.    _pdf_to_images i fitz kullanarak yapmaya çalışıldı.
 
-layout + OCR + table parsing + reading order'I PP-structure v3 ile yapmaya Ã§alÄ±ÅŸtÄ±m.
+layout + OCR + table parsing + reading order'I PP-structure v3 ile yapmaya çalıştım.
 
-ablolarÄ± korumak iÃ§in HTML tablo Ã§Ä±ktÄ±sÄ±nÄ± Markdown grid tabloya (`| ... |`) dÃ¶nÃ¼ÅŸtÃ¼ren fonksiyon ekledim.
+abloları korumak için HTML tablo çıktısını Markdown grid tabloya (`| ... |`) dönüştüren fonksiyon ekledim.
 
-Sayfa iÃ§eriklerini sÄ±ralÄ± ÅŸekilde birleÅŸtirip tek Markdown metni dÃ¶ndÃ¼ren akÄ±ÅŸÄ± tamamladÄ±m.
+Sayfa içeriklerini sıralı şekilde birleştirip tek Markdown metni döndüren akışı tamamladım.
 
- Script sonuna `if __name__ == "__main__"` bloÄŸu ekleyip `input_file` ve `--output` ile test edilebilir hale getirdim.
+ Script sonuna `if __name__ == "__main__"` bloğu ekleyip `input_file` ve `--output` ile test edilebilir hale getirdim.
 
-  NumPy 2.x uyumsuzluÄŸu yaÅŸadÄ±m; `numpy==1.26.4` ile sabitleyerek Ã§Ã¶zdÃ¼m.
+  NumPy 2.x uyumsuzluğu yaşadım; `numpy==1.26.4` ile sabitleyerek çözdüm.
   
-  PaddleOCR 3.5 API farklarÄ± nedeniyle fallback OCR parametrelerini sÃ¼rÃ¼me uyumlu hale getirdim (`use_textline_orientation`, `device` vb.).
+  PaddleOCR 3.5 API farkları nedeniyle fallback OCR parametrelerini sürüme uyumlu hale getirdim (`use_textline_orientation`, `device` vb.).
 
-  CPUâ€™da gÃ¶rÃ¼len PP-StructureV3 `onednn/pir` hatasÄ±nÄ± `enable_mkldnn=False` ile giderdim.
+  CPU'da görülen PP-StructureV3 `onednn/pir` hatasını `enable_mkldnn=False` ile giderdim.
 
-  Son durumda sistem PDFâ€™den `.md` Ã¼retir hale geldi fakat birebir dÃ¼zgÃ¼n ocr etmediÄŸini gÃ¶zle doÄŸruladÄ±m 
+  Son durumda sistem PDF'den `.md` üretir hale geldi fakat birebir düzgün ocr etmediğini gözle doğruladım 
 
 # 07-05-2026 
-faz'1 de yaptÄ±klarÄ±mÄ± devlog a aktardÄ±m. 
-NasÄ±l bir Ã§Ã¶zÃ¼m izleyeceÄŸimi araÅŸtÄ±ramya baÅŸlayacaÄŸÄ±m llm ve internette bununla ilgili ÅŸeylere bakacaÄŸÄ±m.
+faz'1 de yaptıklarımı devlog a aktardım. 
+Nasıl bir çözüm izleyeceğimi araştıramya başlayacağım llm ve internette bununla ilgili şeylere bakacağım.
 
-kullandÄ±ÄŸÄ±m pdfde yazÄ±m hatalarÄ±nÄ±n olduÄŸunu da gÃ¶rdÃ¼m Ã¶zellikle bu iÅŸ iÃ§in bir pdf bulmata Ã§alÄ±ÅŸacaÄŸÄ±m 
+kullandığım pdfde yazım hatalarının olduğunu da gördüm özellikle bu iş için bir pdf bulmata çalışacağım 
 
-merkez bankasÄ± enflasyon raporu tÃ¼rkÃ§e pdf olarak projeye indirdim aynÄ± ÅŸekilde belli bir kÄ±smÄ±nÄ±n ingilizce halini buldum onu da koydum. taranmÄ±ÅŸ gÃ¶rseller de eklemek istedim cord datasetinden 2 tane ingilizce taranmÄ±ÅŸ belge gÃ¶rseli indirdim. fiÅŸ dataseti de buldum ama fiÅŸ belge gÃ¶rsel kapsamÄ±nda mÄ± emin olamadÄ±m ÅŸimdilik zamanÄ± efektif kullanmak iÃ§in atladÄ±m . tÃ¼rkÃ§e iÃ§in de meb sitesinden eski arÅŸiv taramalarÄ±ndan 2 tanesini indirdim. Case study pdf inin de bir pdf olduÄŸu iÃ§in kullanmaya karar verdim.
+merkez bankası enflasyon raporu türkçe pdf olarak projeye indirdim aynı şekilde belli bir kısmının ingilizce halini buldum onu da koydum. taranmış görseller de eklemek istedim cord datasetinden 2 tane ingilizce taranmış belge görseli indirdim. fiş dataseti de buldum ama fiş belge görsel kapsamında mı emin olamadım şimdilik zamanı efektif kullanmak için atladım . türkçe için de meb sitesinden eski arşiv taramalarından 2 tanesini indirdim. Case study pdf inin de bir pdf olduğu için kullanmaya karar verdim.
 
-hata dÃ¼zeltme Ã¶ncesi cpu yerine kendi bilgisayarÄ±mda laptop rtx 5070 ti kullanabilmek iÃ§in gpu kullanmak iÃ§in gerekli paketleri kurdum .
-python document_processor.py "tarama_tr2.png" --gpu --output "tarama_tr2.md" gibi Ã§alÄ±ÅŸmalarla eklediÄŸim case pdf , merkez bankasÄ± pdf , merkezbankasÄ± eng pdf , taramalar eng /tr ocr ile md olarak oluÅŸturuldu. 
+hata düzeltme öncesi cpu yerine kendi bilgisayarımda laptop rtx 5070 ti kullanabilmek için gpu kullanmak için gerekli paketleri kurdum .
+python document_processor.py "tarama_tr2.png" --gpu --output "tarama_tr2.md" gibi çalışmalarla eklediğim case pdf , merkez bankası pdf , merkezbankası eng pdf , taramalar eng /tr ocr ile md olarak oluşturuldu. 
 
-pdfleri ve Ã§Ä±ktÄ±larÄ± karÅŸÄ±laÅŸtÄ±rdÄ±m gÃ¶zle aynÄ± zamanda llm'e yÃ¼kleyerek bu yorumu aldÄ±m . " merkezbankasÄ±.md:1 ve merkezbankasÄ±_eng.md:1 en gÃ¼Ã§lÃ¼ Ã§Ä±ktÄ±lar. Sayfa yapÄ±sÄ±, baÅŸlÄ±klar ve iÃ§erik akÄ±ÅŸÄ± korunmuÅŸ. RAG ve demo iÃ§in en gÃ¼venilir Ã¶rnekler bunlar. Buna raÄŸmen TÃ¼rkÃ§e karakterlerde, boÅŸluklarda ve bazÄ± kelimelerde hatalar var. tarama_eng2.md:1 taranmÄ±ÅŸ belgeler iÃ§inde en kullanÄ±labilir olanÄ±. Form yapÄ±sÄ± bÃ¼yÃ¼k Ã¶lÃ§Ã¼de korunmuÅŸ, okunabilirlik kabul edilebilir seviyede. Yine de bazÄ± satÄ±rlarda karakter bozulmalarÄ± ve kÃ¼Ã§Ã¼k tablo/hizalama sorunlarÄ± var. tarama_eng.md:1 orta seviyede. Ä°Ã§erik genel olarak yakalanmÄ±ÅŸ, ama tablo yoÄŸun form nedeniyle alan iliÅŸkileri tam temiz deÄŸil. Yine de anlamÄ± bÃ¼yÃ¼k Ã¶lÃ§Ã¼de taÅŸÄ±yor. tarama_tr2.md:1 zayÄ±f. TÃ¼rkÃ§e karakterler, satÄ±r sÄ±rasÄ± ve tablo yapÄ±sÄ± ciddi biÃ§imde bozulmuÅŸ. Sadece kaba iÃ§erik fikri veriyor. tarama_tr.md:1 en zayÄ±f Ã§Ä±ktÄ±. Karakter hatalarÄ± ve kÄ±rÄ±k kelimeler Ã§ok fazla. Bilgi Ã§Ä±karÄ±mÄ± ve alÄ±ntÄ± iÃ§in gÃ¼venilir deÄŸil."
+pdfleri ve çıktıları karşılaştırdım gözle aynı zamanda llm'e yükleyerek bu yorumu aldım . " merkezbankası.md:1 ve merkezbankası_eng.md:1 en güçlü çıktılar. Sayfa yapısı, başlıklar ve içerik akışı korunmuş. RAG ve demo için en güvenilir örnekler bunlar. Buna rağmen Türkçe karakterlerde, boşluklarda ve bazı kelimelerde hatalar var. tarama_eng2.md:1 taranmış belgeler içinde en kullanılabilir olanı. Form yapısı büyük ölçüde korunmuş, okunabilirlik kabul edilebilir seviyede. Yine de bazı satırlarda karakter bozulmaları ve küçük tablo/hizalama sorunları var. tarama_eng.md:1 orta seviyede. İçerik genel olarak yakalanmış, ama tablo yoğun form nedeniyle alan ilişkileri tam temiz değil. Yine de anlamı büyük ölçüde taşıyor. tarama_tr2.md:1 zayıf. Türkçe karakterler, satır sırası ve tablo yapısı ciddi biçimde bozulmuş. Sadece kaba içerik fikri veriyor. tarama_tr.md:1 en zayıf çıktı. Karakter hataları ve kırık kelimeler çok fazla. Bilgi çıkarımı ve alıntı için güvenilir değil."
 
-eski tÃ¼rkÃ§e belgelerinde sayfa bÃ¶lme  ,gÃ¼rÃ¼ltÃ¼ dÃ¼zeltme ekledim ama iyileÅŸme olsa da gÃ¶rÃ¼ntÃ¼ zor olduÄŸu iÃ§in Ã§ok iyi deÄŸiliz hala ama faz 2 ye geÃ§eceÄŸim artÄ±k baya uÄŸraÅŸtÄ±rdÄ±. 
+eski türkçe belgelerinde sayfa bölme  ,gürültü düzeltme ekledim ama iyileşme olsa da görüntü zor olduğu için çok iyi değiliz hala ama faz 2 ye geçeceğim artık baya uğraştırdı. 
 
 
 # faz 2
@@ -160,7 +159,7 @@ retrieval query testleri yapildi
 rerank karsilastirmasi yapildi
 sonraki adim olarak kucuk bir eval seti (jsonl) hazirlayip evaluate ile recall@k, mrr, ndcg@k metriklerine bakacagim.
 
-eval.json dosyasÄ± oluÅŸturuldu
+eval.json dosyası oluşturuldu
 
 
 # 10-05-2026 (devam)
@@ -417,7 +416,7 @@ cozum:
 - onemli her olaydan sonra atomik state write yapiliyor (tmp + replace)
 
 dorduncu sorun:
-- "islenemedi" gibi hata metni encoding bozulunca kaciyordu (islenemedi / iÅŸlenemedi vb)
+- "islenemedi" gibi hata metni encoding bozulunca kaciyordu (islenemedi / işlenemedi vb)
 
 cozum:
 - hata tespitini unicode normalize + ascii sadelestirme + regex imzalarina cevirdim
@@ -931,7 +930,7 @@ not:
 # 11-05-2026 (faz 8 - crash tespiti ve device yonetimi)
 - faz8_test_harness sessiz kapanma nedeni tespit edildi: native crash (EXIT=-1073741819), Python exception degil.
 - kok neden riskini azaltmak icin benchmark/adversarial akislarinda retrieval device parametresi aktif edildi.
-- bugfix: --retrieval-device artik gercekten sk_question cagrilarina aktariliyor (onceden config sabitine kilitliydi).
+- bugfix: --retrieval-device artik gercekten sk_question cagrilarina aktariliyor (onceden config sabitine kilitliydi).
 - operasyonel onerı: faz8 calistirmasini once --retrieval-device cpu ile dogrulamak, sonra cuda tekrar denemek.
 
 # 12-05-2026 (faz 8 - guardrail inference duzeltmesi)
@@ -942,7 +941,8 @@ not:
 
 # 12-05-2026 (faz 8 - kalite sertlestirme)
 - Faz 8 degerlendirme metriklerinde nDCG@5 hesaplamasi duzeltildi: ayni ilgili dokumanin tekrar puanlanmasi engellendi ve skor [0,1] araligina sabitlendi.
-- Benchmark akisinda soru bazli elevant_doc_ids kullanilarak doc_id filtre zorlamasi eklendi; alakasiz koleksiyonlardan kaynak cekilmesi azaltildi.
+- Benchmark akisinda soru bazli 
+elevant_doc_ids kullanilarak doc_id filtre zorlamasi eklendi; alakasiz koleksiyonlardan kaynak cekilmesi azaltildi.
 - generation_pipeline strict guardrail bariyeri sertlestirildi: guardrail modeli unavailable oldugunda fallback zorunlu hale getirildi (guardrail_unavailable_strict_block).
 - strict modda citation coverage < 1.0 durumunda da cevap fallback'e cekiliyor.
 

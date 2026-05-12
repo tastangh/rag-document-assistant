@@ -58,6 +58,8 @@ RERANK_MODELS: List[str] = sorted({row["reranker_model"] for row in MODEL_PRESET
 LLM_MODELS: List[str] = sorted({row["llm_model"] for row in MODEL_PRESETS})
 OCR_LANG_OPTIONS: List[str] = ["tr", "en"]
 OCR_PROFILE_OPTIONS: List[str] = ["default", "lightweight"]
+OCR_BACKEND_OPTIONS: List[str] = ["auto", "paddle", "opendataloader_pdf"]
+OCR_DEVICE_MODE_OPTIONS: List[str] = ["auto", "cpu", "gpu"]
 
 
 def get_preset(preset_id: str) -> Dict[str, str]:

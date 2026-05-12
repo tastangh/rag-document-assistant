@@ -19,3 +19,4 @@ langchain-text-splitters>=0.2.0
 chromadb>=1.0.0
 streamlit>=1.35.0
 ragas>=0.2.0
+opendataloader-pdf>=0.0.8

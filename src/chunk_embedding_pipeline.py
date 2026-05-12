@@ -274,6 +274,68 @@ def _inject_chunk_context(chunk: ChunkRecord) -> str:
     )
 
 
+def _hard_split_oversized_chunks(
+    chunks: Sequence[ChunkRecord],
+    max_text_len: int,
+    overlap_chars: int,
+    min_chunk_size: int,
+) -> List[ChunkRecord]:
+    """Limit üstü text chunk'ları güvenli şekilde böl ve chunk_id'leri yeniden numaralandır."""
+    counters: Dict[Tuple[str, int], int] = {}
+    fixed: List[ChunkRecord] = []
+
+    for row in chunks:
+        key = (row.doc_id, row.page_no)
+        counters.setdefault(key, 1)
+
+        def _next_chunk_id() -> str:
+            idx = counters[key]
+            counters[key] += 1
+            return f"{row.doc_id}::p{row.page_no}::c{idx}"
+
+        if row.chunk_type != "text" or row.char_len <= max_text_len:
+            fixed.append(
+                ChunkRecord(
+                    chunk_id=_next_chunk_id(),
+                    doc_id=row.doc_id,
+                    page_no=row.page_no,
+                    section_title=row.section_title,
+                    is_table=row.is_table,
+                    chunk_type=row.chunk_type,
+                    text=row.text,
+                    char_len=row.char_len,
+                )
+            )
+            continue
+
+        split_parts = _split_long_text_with_dynamic_overlap(
+            text=row.text,
+            target_chunk_chars=max_text_len,
+            overlap_chars=min(overlap_chars, int(max_text_len * 0.25)),
+            min_chunk_size=min_chunk_size,
+        )
+        if not split_parts:
+            # fallback: karakter bazli sert bölme
+            step = max(max_text_len - max(0, overlap_chars), max(min_chunk_size, 64))
+            split_parts = [row.text[i : i + max_text_len].strip() for i in range(0, len(row.text), step) if row.text[i : i + max_text_len].strip()]
+
+        for part in split_parts:
+            fixed.append(
+                ChunkRecord(
+                    chunk_id=_next_chunk_id(),
+                    doc_id=row.doc_id,
+                    page_no=row.page_no,
+                    section_title=row.section_title,
+                    is_table=False,
+                    chunk_type="text",
+                    text=part,
+                    char_len=len(part),
+                )
+            )
+
+    return fixed
+
+
 def build_chunks_for_document(
     doc_path: Path,
     target_chunk_chars: int,
@@ -510,10 +572,23 @@ def run_pipeline(
     max_text_len = int(chunk_size * 1.1)
     oversized = [c for c in all_chunks if c.chunk_type == "text" and c.char_len > max_text_len]
     if oversized:
-        first = oversized[0]
-        raise RuntimeError(
-            f"Text chunk boyutu siniri asildi: {first.chunk_id} ({first.char_len} > {max_text_len})"
+        logger.warning(
+            "Oversized text chunk tespit edildi (%s adet). Otomatik bolme uygulanacak. limit=%s",
+            len(oversized),
+            max_text_len,
         )
+        all_chunks = _hard_split_oversized_chunks(
+            chunks=all_chunks,
+            max_text_len=max_text_len,
+            overlap_chars=overlap_chars,
+            min_chunk_size=min_chunk_size,
+        )
+        oversized_after = [c for c in all_chunks if c.chunk_type == "text" and c.char_len > max_text_len]
+        if oversized_after:
+            first = oversized_after[0]
+            raise RuntimeError(
+                f"Text chunk boyutu siniri asildi (otomatik bolme sonrasi): {first.chunk_id} ({first.char_len} > {max_text_len})"
+            )
 
     texts = [c.text for c in all_chunks]
     vectors, used_model, used_device = embed_texts(

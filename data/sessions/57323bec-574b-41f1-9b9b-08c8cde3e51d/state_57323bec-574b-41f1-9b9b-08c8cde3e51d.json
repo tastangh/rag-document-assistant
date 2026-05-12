@@ -1,0 +1,186 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "selam"
+    },
+    {
+      "role": "user",
+      "content": "selam"
+    },
+    {
+      "role": "assistant",
+      "content": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": [
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 2,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p2::c2",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 2 | Bolum: ROOT | Tablo: false] eceğiniz tamamen size bırakılmıştır. Hangi teknolojileri, kütüphaneleri, modelleri veya mimari yaklaşımları kullanacağınız sizin kararınızdır. Bi..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 4,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p4::c1",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 4 | Bolum: ROOT | Tablo: false] AI/ML Developer – Teknik Değerlendirme Sayfa 4 / 4 5. Teslimat Bilgileri Teslim Yöntemi: GitHub repository linki 6. Sonraki Adım Teslimatınız olu..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 2,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p2::c1",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 2 | Bolum: ROOT | Tablo: false] AI/ML Developer – Teknik Değerlendirme Sayfa 2 / 4 1. Proje Özeti Kullanıcıların çeşitli formatlardaki belgeleri yükleyerek bu belgeler üzerinden..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 3,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p3::c1",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 3 | Bolum: ROOT | Tablo: false] AI/ML Developer – Teknik Değerlendirme Sayfa 3 / 4 # Teslimat Açıklama 1 DEVLOG.md Geliştirme sürecinizin kaydı. Detaylar aşağıda. 2 TESTING.md T..."
+        }
+      ],
+      "details": {
+        "latency_sec": 0.046,
+        "sources_count": 4,
+        "fallback_used": true,
+        "supported_ratio": 0.0,
+        "confidence": "low",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.55,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.5,
+        "citation_min_coverage": 0.8
+      }
+    },
+    {
+      "role": "user",
+      "content": "bu dökümanda ne anlatıyor"
+    },
+    {
+      "role": "assistant",
+      "content": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": [
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 3,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p3::c1",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 3 | Bolum: ROOT | Tablo: false] AI/ML Developer – Teknik Değerlendirme Sayfa 3 / 4 # Teslimat Açıklama 1 DEVLOG.md Geliştirme sürecinizin kaydı. Detaylar aşağıda. 2 TESTING.md T..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 2,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p2::c1",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 2 | Bolum: ROOT | Tablo: false] AI/ML Developer – Teknik Değerlendirme Sayfa 2 / 4 1. Proje Özeti Kullanıcıların çeşitli formatlardaki belgeleri yükleyerek bu belgeler üzerinden..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 2,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p2::c2",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 2 | Bolum: ROOT | Tablo: false] eceğiniz tamamen size bırakılmıştır. Hangi teknolojileri, kütüphaneleri, modelleri veya mimari yaklaşımları kullanacağınız sizin kararınızdır. Bi..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 4,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p4::c1",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 4 | Bolum: ROOT | Tablo: false] AI/ML Developer – Teknik Değerlendirme Sayfa 4 / 4 5. Teslimat Bilgileri Teslim Yöntemi: GitHub repository linki 6. Sonraki Adım Teslimatınız olu..."
+        }
+      ],
+      "details": {
+        "latency_sec": 12.551,
+        "sources_count": 4,
+        "fallback_used": true,
+        "supported_ratio": 0.0,
+        "confidence": "low",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.55,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.5,
+        "citation_min_coverage": 0.8
+      }
+    },
+    {
+      "role": "user",
+      "content": "naptın"
+    },
+    {
+      "role": "assistant",
+      "content": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": [
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 2,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p2::c2",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 2 | Bolum: ROOT | Tablo: false] eceğiniz tamamen size bırakılmıştır. Hangi teknolojileri, kütüphaneleri, modelleri veya mimari yaklaşımları kullanacağınız sizin kararınızdır. Bi..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 3,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p3::c2",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 3 | Bolum: ROOT | Tablo: false] • Şu an bildiğinizle baştan başlasanız neyi farklı yapardınız? 4.2. TESTING.md — Test ve Doğrulama Sisteminizi nasıl test ettiğinizi ve sınırları..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 3,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p3::c1",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 3 | Bolum: ROOT | Tablo: false] AI/ML Developer – Teknik Değerlendirme Sayfa 3 / 4 # Teslimat Açıklama 1 DEVLOG.md Geliştirme sürecinizin kaydı. Detaylar aşağıda. 2 TESTING.md T..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 2,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p2::c1",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 2 | Bolum: ROOT | Tablo: false] AI/ML Developer – Teknik Değerlendirme Sayfa 2 / 4 1. Proje Özeti Kullanıcıların çeşitli formatlardaki belgeleri yükleyerek bu belgeler üzerinden..."
+        }
+      ],
+      "details": {
+        "latency_sec": 0.883,
+        "sources_count": 4,
+        "fallback_used": true,
+        "supported_ratio": 0.0,
+        "confidence": "low",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.65,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.45,
+        "citation_min_coverage": 0.7,
+        "query_mode": "rag_interpret"
+      }
+    }
+  ],
+  "ready": true,
+  "docs": [
+    {
+      "name": "Case_Study_TUSAŞ_LLM.pdf",
+      "path": "data\\sessions\\57323bec-574b-41f1-9b9b-08c8cde3e51d\\uploads\\Case_Study_TUSAŞ_LLM.pdf",
+      "status": "ready"
+    }
+  ],
+  "last_error": "",
+  "model_name": "qwen3:8b",
+  "system_instructions": "",
+  "temperature": 0.35,
+  "top_k": 40,
+  "top_p": 0.9,
+  "repeat_penalty": 1.1,
+  "thinking_level": "medium",
+  "strict_guardrail": true,
+  "fast_mode": true,
+  "initial_k": 16,
+  "final_k": 5,
+  "retrieval_min_overlap": 0.05,
+  "guardrail_threshold": 0.5,
+  "citation_min_coverage": 0.8,
+  "creativity": 35,
+  "log_level": 0,
+  "doc_filter_mode": "auto",
+  "manual_doc_id": "",
+  "preset_id": "tr_balanced",
+  "embedding_model": "newmindai/Mursit-Large-TR-Retrieval",
+  "reranker_model": "BAAI/bge-reranker-v2-m3",
+  "ocr_lang": "tr",
+  "ocr_profile": "default",
+  "ocr_backend": "paddle",
+  "ocr_device_mode": "cpu",
+  "session_id": "57323bec-574b-41f1-9b9b-08c8cde3e51d",
+  "access_key": "xeIZcGDSFqrXRfEZnLwJTCT9C1AZJdMl"
+}

@@ -1,0 +1,159 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "resimde ne var"
+    },
+    {
+      "role": "assistant",
+      "content": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": [
+        {
+          "doc_id": "tarama_eng2",
+          "page": 1,
+          "chunk_id": "tarama_eng2::p1::c1",
+          "text_preview": "[Dokuman: tarama_eng2 | Sayfa: 1 | Bolum: TOBACCO SCIENCE | Tablo: false] ## TOBACCO SCIENCE Registration No._533Date March 18, 1968AUTHORS Andrew G. Kallianos, Richard K. Means, James D. Mold TITLE \"Effect of Nitrate..."
+        }
+      ],
+      "details": {
+        "latency_sec": 0.036,
+        "sources_count": 1,
+        "fallback_used": true,
+        "supported_ratio": 0.0,
+        "confidence": "low",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.65,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.45,
+        "citation_min_coverage": 0.7,
+        "query_mode": "rag_interpret"
+      }
+    },
+    {
+      "role": "user",
+      "content": "yazar kim"
+    },
+    {
+      "role": "assistant",
+      "content": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": [
+        {
+          "doc_id": "tarama_eng2",
+          "page": 1,
+          "chunk_id": "tarama_eng2::p1::c1",
+          "text_preview": "[Dokuman: tarama_eng2 | Sayfa: 1 | Bolum: TOBACCO SCIENCE | Tablo: false] ## TOBACCO SCIENCE Registration No._533Date March 18, 1968AUTHORS Andrew G. Kallianos, Richard K. Means, James D. Mold TITLE \"Effect of Nitrate..."
+        }
+      ],
+      "details": {
+        "latency_sec": 0.124,
+        "sources_count": 1,
+        "fallback_used": true,
+        "supported_ratio": 0.0,
+        "confidence": "low",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.45,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.55,
+        "citation_min_coverage": 0.9,
+        "query_mode": "rag_fact"
+      }
+    },
+    {
+      "role": "user",
+      "content": "yazar kim"
+    },
+    {
+      "role": "assistant",
+      "content": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": [
+        {
+          "doc_id": "tarama_eng2",
+          "page": 1,
+          "chunk_id": "tarama_eng2::p1::c1",
+          "text_preview": "[Dokuman: tarama_eng2 | Sayfa: 1 | Bolum: TOBACCO SCIENCE | Tablo: false] ## TOBACCO SCIENCE Registration No._533Date March 18, 1968AUTHORS Andrew G. Kallianos, Richard K. Means, James D. Mold TITLE \"Effect of Nitrate..."
+        }
+      ],
+      "details": {
+        "latency_sec": 0.131,
+        "sources_count": 1,
+        "fallback_used": true,
+        "supported_ratio": 0.0,
+        "confidence": "low",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.45,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.55,
+        "citation_min_coverage": 0.9,
+        "query_mode": "rag_fact"
+      }
+    },
+    {
+      "role": "user",
+      "content": "ne yazıyor"
+    },
+    {
+      "role": "assistant",
+      "content": "- 1. Doküman, \"Effect of Nitrates in Tobacco on the Catechol Yield in Cigarette Smoke\" başlıklı bir çalışma hakkında bilgi vermektedir .\n- 2. Çalışma, 18 Mart 1968 tarihinde kaydedilmiş ve 29 Mart 1968 tarihinde incelemesi tamamlanmıştır .\n- 3. Onay önerisi olarak \"MEVCUT HALİNDE ONAYLA\" belirtilmiş, ancak bazı önerilen düzeltmelerle birlikte geçici olarak onaylanmıştır .\n- 4. Önerilen düzeltmeler arasında sayfa 4'teki \"Mass spectroscopic\" ifadesinin \"Mass spectrometric\" olarak değiştirilmesi yer almaktadır .\n- 5. Doküman, üç kopya olarak hazırlanması ve üçüncü kopyanın dosyaya kaydedilmesi gerektiğini belirtmektedir .\n- 6. İlgili ofise orijinal (imzalı) ve ilk karbon kopya (imzalı olmayan) ile makale gönderilmemesi gerekmektedir .",
+      "sources": [
+        {
+          "doc_id": "tarama_eng2",
+          "page": 1,
+          "chunk_id": "tarama_eng2::p1::c1",
+          "text_preview": "[Dokuman: tarama_eng2 | Sayfa: 1 | Bolum: TOBACCO SCIENCE | Tablo: false] ## TOBACCO SCIENCE Registration No._533Date March 18, 1968AUTHORS Andrew G. Kallianos, Richard K. Means, James D. Mold TITLE \"Effect of Nitrate..."
+        }
+      ],
+      "details": {
+        "latency_sec": 35.231,
+        "sources_count": 1,
+        "fallback_used": false,
+        "supported_ratio": 1.0,
+        "confidence": "high",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.65,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.45,
+        "citation_min_coverage": 0.7,
+        "query_mode": "rag_interpret"
+      }
+    }
+  ],
+  "ready": true,
+  "docs": [
+    {
+      "name": "tarama_eng2.png",
+      "path": "data\\sessions\\9a5c774e-d04b-445e-9a05-fe9f0d0b5c9a\\uploads\\tarama_eng2.png",
+      "status": "ready"
+    }
+  ],
+  "last_error": "",
+  "model_name": "qwen3:8b",
+  "system_instructions": "",
+  "temperature": 0.35,
+  "top_k": 40,
+  "top_p": 0.9,
+  "repeat_penalty": 1.1,
+  "thinking_level": "medium",
+  "strict_guardrail": true,
+  "fast_mode": true,
+  "initial_k": 16,
+  "final_k": 5,
+  "retrieval_min_overlap": 0.05,
+  "guardrail_threshold": 0.5,
+  "citation_min_coverage": 0.8,
+  "creativity": 35,
+  "log_level": 1,
+  "doc_filter_mode": "manual",
+  "manual_doc_id": "tarama_eng2",
+  "preset_id": "tr_balanced",
+  "embedding_model": "newmindai/Mursit-Large-TR-Retrieval",
+  "reranker_model": "BAAI/bge-reranker-v2-m3",
+  "ocr_profile": "default",
+  "ocr_backend": "paddle",
+  "ocr_device_mode": "cpu",
+  "session_id": "9a5c774e-d04b-445e-9a05-fe9f0d0b5c9a",
+  "access_key": "mnCEI1BlM7C9wyq1VtYKVKzqCNlw4WMe"
+}

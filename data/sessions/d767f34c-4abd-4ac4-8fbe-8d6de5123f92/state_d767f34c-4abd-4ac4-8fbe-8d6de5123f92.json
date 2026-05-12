@@ -1,0 +1,302 @@
+{
+  "messages": [
+    {
+      "role": "user",
+      "content": "dökümanı özetle"
+    },
+    {
+      "role": "assistant",
+      "content": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": [
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 17,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p17::c76",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 17 | Bolum: ROOT | Tablo: false] ied gated fusi..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 21,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p21::c94",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 21 | Bolum: ROOT | Tablo: false] ject In- terac..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 18,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p18::c78",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 18 | Bolum: ROOT | Tablo: false] limits adapt- ..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 18,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p18::c79",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 18 | Bolum: ROOT | Tablo: false] on, Writing – ..."
+        }
+      ],
+      "details": {
+        "latency_sec": 16.13,
+        "sources_count": 4,
+        "fallback_used": true,
+        "supported_ratio": 0.0,
+        "confidence": "low",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.65,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.45,
+        "citation_min_coverage": 0.7,
+        "query_mode": "rag_interpret"
+      }
+    },
+    {
+      "role": "user",
+      "content": "yazarı kim "
+    },
+    {
+      "role": "assistant",
+      "content": "- Mehmet Taştan: Conceptualization, Methodology, Software, Validation, Formal Analysis, Data Curation, Writing – Original Draft [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p18::c78].\n- Hamza Osman İlhan: Conceptualization, Methodology, Supervision, Writing – Review & Editing [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p18::c79].",
+      "sources": [
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 19,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p19::c84",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 19 | Bolum: ROOT | Tablo: false] olutional labe..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 18,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p18::c78",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 18 | Bolum: ROOT | Tablo: false] limits adapt- ..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 18,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p18::c79",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 18 | Bolum: ROOT | Tablo: false] on, Writing – ..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 3,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p3::c13",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 3 | Bolum: ROOT | Tablo: false] k on 176 weakly..."
+        }
+      ],
+      "details": {
+        "latency_sec": 9.691,
+        "sources_count": 4,
+        "fallback_used": false,
+        "supported_ratio": 1.0,
+        "confidence": "high",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.55,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.55,
+        "citation_min_coverage": 0.9,
+        "query_mode": "rag_fact"
+      }
+    },
+    {
+      "role": "user",
+      "content": "ne anlatıyor"
+    },
+    {
+      "role": "assistant",
+      "content": "- ASHEN, video anormallik tespiti (VAD) için bir çokmodallı zayıf etiketli öğrenme çerçevesidir. Bu çalışmanın temel amacı, mevcut VAD yöntemlerinin sınırlamalarını gidermek ve saldırı意图 (hostile intent) içeren anormallikleri daha etkili olarak tespit etmektir. [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p1::c3]\n- 1. **Mevcut Sistemlerin Sınırlamaları**: Zayıf etiketli VAD yöntemlerinin çoğu ikili sınıflandırma (normal vs. anormallik) yaparken, saldırı意图 içeren anormallik türlerini detaylı olarak kategorize etmeyi ihmal etmektedir. Bu durum, güvenlik sistemlerinde daha etkili müdahale için gerekli olan anormallik türlerini belirleme konusunda eksiklik oluşturur. [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p2::c9]\n- 2. **Kurumsal ve Teknik Gerekli**: Büyük miktarda video verisinin insan denetimiyle izlenmesi mümkün olmayan bir problemi vardır. Bu nedenle, otomatik anormallik tespiti sistemleri geliştirilmesi gerekmektedir. [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p3::c14]\n- 3. **ASHEN'in Çözümü**: ASHEN, görsel-yanlış temsillerini birleştirerek, çokmodallı birleşimi ve zaman serisi modellemesiyle zayıf etiketli öğrenme problemini çözmeyi amaçlar. CLIP ViT-B/32 özelliklerini temel alırken, YOLOv8 nesne tespiti ve insan-nesne etkileşimini (HOI) Gated Multi-modal Fusion mekanizmasıyla entegre eder. [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p1::c1]",
+      "sources": [
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 2,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p2::c9",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 2 | Bolum: ROOT | Tablo: false] rchitectural ov..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 1,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p1::c1",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 1 | Bolum: ROOT | Tablo: false] ASHEN: Automate..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 1,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p1::c3",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 1 | Bolum: ROOT | Tablo: false] infrastructure ..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 3,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p3::c14",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 3 | Bolum: ROOT | Tablo: false] rk (4) which ha..."
+        }
+      ],
+      "details": {
+        "latency_sec": 12.919,
+        "sources_count": 4,
+        "fallback_used": false,
+        "supported_ratio": 1.0,
+        "confidence": "high",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.65,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.45,
+        "citation_min_coverage": 0.7,
+        "query_mode": "rag_interpret"
+      }
+    },
+    {
+      "role": "user",
+      "content": "özetle"
+    },
+    {
+      "role": "assistant",
+      "content": "- 1. ASHEN, zayıf etiketli video anomali tespiti için bir çok modlu transformer framework'udur ve bu alanda yeni bir yaklaşım sunar. [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p3::c13]\n- 2. Semantik açıdan farklı ama görsel olarak benzer olayları ayırt etmek için Vision-Language Modelleri (VLM) kullanılır. Örneğin, CLIP, görsel ve metin özelliklerini ortak bir embedding uzayında birleştirir. [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p2::c7]\n- 3. ASHEN, özellik çıkarımı, çok modlu birleştirme, zaman modelleme ve eğitim prosedürü gibi bileşenlerden oluşur ve bu yapı sayesinde anomali tespiti daha etkili hale gelir. [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p3::c13]\n- 4. Çalışmada, 2024 TUSAŞ terör saldırısı gibi gerçek dünya senaryoları üzerinde deneyler yapılmış ve sonuçlar rapor edilmiştir. [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p3::c13]\n- 5. Gelecekte, az örnekli sınıflar için performansı artırmak ve sistem açıklarını artırmak için sınıflarına özel karar eşiği ayarları ve anlamlılık mekanizmaları önerilmektedir. [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p18::c78]",
+      "sources": [
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 3,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p3::c13",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 3 | Bolum: ROOT | Tablo: false] k on 176 weakly..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 2,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p2::c7",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 2 | Bolum: ROOT | Tablo: false] rred to as the ..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 4,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p4::c17",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 4 | Bolum: ROOT | Tablo: false] n 251 running i..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 18,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p18::c78",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 18 | Bolum: ROOT | Tablo: false] limits adapt- ..."
+        }
+      ],
+      "details": {
+        "latency_sec": 13.157,
+        "sources_count": 4,
+        "fallback_used": false,
+        "supported_ratio": 1.0,
+        "confidence": "high",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.65,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.45,
+        "citation_min_coverage": 0.7,
+        "query_mode": "rag_interpret"
+      }
+    },
+    {
+      "role": "user",
+      "content": "datasette kaç bin data var"
+    },
+    {
+      "role": "assistant",
+      "content": "- datasette toplam 1600 video bulunmaktadir. Bu veri kümesi, 800 anomali ve 800 normal video içermektedir. [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p6::c30]\n- Ayrıca, veri kümesinin 70/15/15 katmanlı dağılımı ve sınıf bazlı dağılımı Tablo 4'te belirtilmiştir. [doc_id:ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection:p22::c96]",
+      "sources": [
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 5,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p5::c27",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 5 | Bolum: ROOT | Tablo: false] tains a total o..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 5,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p5::c26",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 5 | Bolum: ROOT | Tablo: false] red on hostile-..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 22,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p22::c96",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 22 | Bolum: ROOT | Tablo: false] Table 4: Ashen..."
+        },
+        {
+          "doc_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection",
+          "page": 6,
+          "chunk_id": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection::p6::c30",
+          "text_preview": "[Dokuman: ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection | Sayfa: 6 | Bolum: ROOT | Tablo: false] ality control: ..."
+        }
+      ],
+      "details": {
+        "latency_sec": 14.717,
+        "sources_count": 4,
+        "fallback_used": false,
+        "supported_ratio": 1.0,
+        "confidence": "high",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.55,
+        "repeat_penalty": 1.1,
+        "guardrail_threshold": 0.55,
+        "citation_min_coverage": 0.9,
+        "query_mode": "rag_fact"
+      }
+    },
+    {
+      "role": "user",
+      "content": "sa"
+    },
+    {
+      "role": "assistant",
+      "content": "Merhaba! Nasıl yardımcı olabilirim? 😊",
+      "details": {
+        "latency_sec": 5.373,
+        "sources_count": 0,
+        "mode": "chat_without_rag",
+        "query_mode": "chat",
+        "top_k": 40,
+        "top_p": 0.9,
+        "temperature": 0.7000000000000001,
+        "repeat_penalty": 1.1
+      }
+    },
+    {
+      "role": "user",
+      "content": "dökümanı incele"
+    }
+  ],
+  "ready": true,
+  "docs": [
+    {
+      "name": "ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection.pdf",
+      "path": "data\\sessions\\d767f34c-4abd-4ac4-8fbe-8d6de5123f92\\uploads\\ASHEN__Automated_Surveillance_and_Hostile_Intent_Evaluation_Network___A_Multimodal_Transformer_Framework_for_Weakly_Supervised_Video_Anomaly_Detection.pdf",
+      "status": "ready"
+    }
+  ],
+  "last_error": "",
+  "model_name": "qwen3:8b",
+  "system_instructions": "",
+  "temperature": 0.35,
+  "top_k": 40,
+  "top_p": 0.9,
+  "repeat_penalty": 1.1,
+  "thinking_level": "medium",
+  "strict_guardrail": true,
+  "fast_mode": true,
+  "initial_k": 16,
+  "final_k": 5,
+  "retrieval_min_overlap": 0.01,
+  "guardrail_threshold": 0.5,
+  "citation_min_coverage": 0.8,
+  "creativity": 35,
+  "log_level": 1,
+  "doc_filter_mode": "auto",
+  "manual_doc_id": "",
+  "preset_id": "tr_balanced",
+  "embedding_model": "newmindai/Mursit-Large-TR-Retrieval",
+  "reranker_model": "BAAI/bge-reranker-v2-m3",
+  "ocr_lang": "tr",
+  "ocr_profile": "default",
+  "ocr_backend": "paddle",
+  "ocr_device_mode": "cpu",
+  "session_id": "d767f34c-4abd-4ac4-8fbe-8d6de5123f92",
+  "access_key": "sWWucWZU88RJx7tLXl1jkzoFnvAgvsYJ"
+}

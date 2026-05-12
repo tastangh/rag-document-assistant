@@ -11,6 +11,7 @@ import logging
 import os
 import re
 import inspect
+import uuid
 from html import unescape
 from pathlib import Path
 from typing import Any, Dict, List, Sequence, Tuple
@@ -55,6 +56,7 @@ class DocumentProcessor:
         pdf_zoom: float = 2.0,
         ocr_lang: str = "tr",
         ocr_profile: str = "default",
+        ocr_backend: str = "paddle",
     ) -> None:
         """OCR ve layout pipeline'ını başlat.
 
@@ -66,6 +68,7 @@ class DocumentProcessor:
         self.pdf_zoom = pdf_zoom
         self.ocr_lang = (ocr_lang or "tr").strip().lower()
         self.ocr_profile = (ocr_profile or "default").strip().lower()
+        self.ocr_backend = (ocr_backend or "paddle").strip().lower()
 
         self.structure_v3 = None
         self.legacy_structure = None
@@ -238,6 +241,11 @@ class DocumentProcessor:
         self._validate_input(path)
 
         try:
+            if path.suffix.lower() == ".pdf" and self.ocr_backend in {"opendataloader_pdf", "auto"}:
+                od_md = self._extract_with_opendataloader_pdf(path)
+                if od_md.strip():
+                    logger.info("OpenDataLoader PDF markdown extraction kullanildi: %s", path.name)
+                    return od_md
             if path.suffix.lower() == ".pdf":
                 # PDF zaten text-layer içeriyorsa önce doğrudan metin çıkar.
                 # Bu yol, OCR/Paddle kaynaklı çalışma zamanı hatalarından etkilenmez.
@@ -276,6 +284,33 @@ class DocumentProcessor:
                 )
 
         return "\n\n".join(page_markdowns).strip()
+
+    def _extract_with_opendataloader_pdf(self, pdf_path: Path) -> str:
+        """OpenDataLoader PDF ile markdown cikarmayi dener.
+
+        Basarisiz olursa bos string doner ve mevcut paddle akisina fallback edilir.
+        """
+        try:
+            import opendataloader_pdf  # type: ignore
+        except Exception as exc:
+            logger.warning("opendataloader_pdf import edilemedi, paddle fallback: %s", exc)
+            return ""
+
+        out_dir = OCR_CACHE_DIR / "opendataloader_tmp" / f"{pdf_path.stem}_{uuid.uuid4().hex[:8]}"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        try:
+            opendataloader_pdf.convert(
+                input_path=[str(pdf_path)],
+                output_dir=str(out_dir),
+                format="markdown",
+            )
+            md_files = sorted(out_dir.rglob("*.md"), key=lambda p: p.stat().st_mtime, reverse=True)
+            if not md_files:
+                return ""
+            return md_files[0].read_text(encoding="utf-8", errors="ignore")
+        except Exception as exc:
+            logger.warning("opendataloader_pdf convert basarisiz, paddle fallback: %s", exc)
+            return ""
 
     def _extract_text_layer_from_pdf(self, pdf_path: Path) -> str:
         """PDF text-layer varsa sayfa bazlı Markdown üretir, yoksa boş döner."""
@@ -891,9 +926,15 @@ def process_document_to_markdown(
     use_gpu: bool = False,
     ocr_lang: str = "tr",
     ocr_profile: str = "default",
+    ocr_backend: str = "paddle",
 ) -> str:
     """Kullanımı kolay fonksiyonel arayüz."""
-    processor = DocumentProcessor(use_gpu=use_gpu, ocr_lang=ocr_lang, ocr_profile=ocr_profile)
+    processor = DocumentProcessor(
+        use_gpu=use_gpu,
+        ocr_lang=ocr_lang,
+        ocr_profile=ocr_profile,
+        ocr_backend=ocr_backend,
+    )
     return processor.process_document(file_path)
 
 
