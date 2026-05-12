@@ -38,48 +38,41 @@ import fitz  # PyMuPDF diye bişi buldum llm ile konuşarak bunun pdf i sayfa sa
 
 layout + OCR + table parsing + reading order'I PP-structure v3 ile yapmaya çalıştım.
 
-abloları korumak için HTML tablo çıktısını Markdown grid tabloya (`| ... |`) dönüştüren fonksiyon ekledim.
+tabloları korumak için HTML tablo çıktısını Markdown grid tabloya (`| ... |`) dönüştüren fonksiyon ekledim.
 
 Sayfa içeriklerini sıralı şekilde birleştirip tek Markdown metni döndüren akışı tamamladım.
 
- Script sonuna `if __name__ == "__main__"` bloğu ekleyip `input_file` ve `--output` ile test edilebilir hale getirdim.
+Script sonuna `if __name__ == "__main__"` bloğu ekleyip `input_file` ve `--output` ile test edilebilir hale getirdim.
 
-  NumPy 2.x uyumsuzluğu yaşadım; `numpy==1.26.4` ile sabitleyerek çözdüm.
+NumPy 2.x uyumsuzluğu yaşadım; `numpy==1.26.4` ile sabitleyerek çözdüm.
   
-  PaddleOCR 3.5 API farkları nedeniyle fallback OCR parametrelerini sürüme uyumlu hale getirdim (`use_textline_orientation`, `device` vb.).
+PaddleOCR 3.5 API farkları nedeniyle fallback OCR parametrelerini sürüme uyumlu hale getirdim (`use_textline_orientation`, `device` vb.).
 
-  CPU'da görülen PP-StructureV3 `onednn/pir` hatasını `enable_mkldnn=False` ile giderdim.
+CPU'da görülen PP-StructureV3 `onednn/pir` hatasını `enable_mkldnn=False` ile giderdim.
 
-  Son durumda sistem PDF'den `.md` üretir hale geldi fakat birebir düzgün ocr etmediğini gözle doğruladım 
+Son durumda sistem PDF ve png'den `.md` üretir hale geldi fakat birebir düzgün ocr etmediğini gözle doğruladım 
 
 # 07-05-2026 
-faz'1 de yaptıklarımı devlog a aktardım. 
 Nasıl bir çözüm izleyeceğimi araştıramya başlayacağım llm ve internette bununla ilgili şeylere bakacağım.
+Kullandığım pdfde yazım hatalarının olduğunu da gördüm özellikle bu iş için bir pdf bulmata çalışacağım 
 
-kullandığım pdfde yazım hatalarının olduğunu da gördüm özellikle bu iş için bir pdf bulmata çalışacağım 
+merkez bankası enflasyon raporu türkçe pdf olarak projeye indirdim aynı şekilde belli bir kısmının ingilizce halini buldum onu da koydum. taranmış görseller de eklemek istedim cord datasetinden 2 tane ingilizce taranmış belge görseli indirdim. fiş dataseti de buldum ama fiş belge görsel kapsamında mı emin olamadım şimdilik zamanı efektif kullanmak için atladım . türkçe için de meb sitesinden eski arşiv taramalarından 2 tanesini indirdim.Bu meb arşivi taranmış belgesi çok zor taranacak bir belge. Case study pdf inin de bir pdf olduğu için kullanmaya karar verdim.
 
-merkez bankası enflasyon raporu türkçe pdf olarak projeye indirdim aynı şekilde belli bir kısmının ingilizce halini buldum onu da koydum. taranmış görseller de eklemek istedim cord datasetinden 2 tane ingilizce taranmış belge görseli indirdim. fiş dataseti de buldum ama fiş belge görsel kapsamında mı emin olamadım şimdilik zamanı efektif kullanmak için atladım . türkçe için de meb sitesinden eski arşiv taramalarından 2 tanesini indirdim. Case study pdf inin de bir pdf olduğu için kullanmaya karar verdim.
-
-hata düzeltme öncesi cpu yerine kendi bilgisayarımda laptop rtx 5070 ti kullanabilmek için gpu kullanmak için gerekli paketleri kurdum .
+Hata düzeltme öncesi cpu yerine kendi bilgisayarımda laptop rtx 5070 ti kullanabilmek için gpu kullanmak için gerekli paketleri kurdum .
 python document_processor.py "tarama_tr2.png" --gpu --output "tarama_tr2.md" gibi çalışmalarla eklediğim case pdf , merkez bankası pdf , merkezbankası eng pdf , taramalar eng /tr ocr ile md olarak oluşturuldu. 
 
-pdfleri ve çıktıları karşılaştırdım gözle aynı zamanda llm'e yükleyerek bu yorumu aldım . " merkezbankası.md:1 ve merkezbankası_eng.md:1 en güçlü çıktılar. Sayfa yapısı, başlıklar ve içerik akışı korunmuş. RAG ve demo için en güvenilir örnekler bunlar. Buna rağmen Türkçe karakterlerde, boşluklarda ve bazı kelimelerde hatalar var. tarama_eng2.md:1 taranmış belgeler içinde en kullanılabilir olanı. Form yapısı büyük ölçüde korunmuş, okunabilirlik kabul edilebilir seviyede. Yine de bazı satırlarda karakter bozulmaları ve küçük tablo/hizalama sorunları var. tarama_eng.md:1 orta seviyede. İçerik genel olarak yakalanmış, ama tablo yoğun form nedeniyle alan ilişkileri tam temiz değil. Yine de anlamı büyük ölçüde taşıyor. tarama_tr2.md:1 zayıf. Türkçe karakterler, satır sırası ve tablo yapısı ciddi biçimde bozulmuş. Sadece kaba içerik fikri veriyor. tarama_tr.md:1 en zayıf çıktı. Karakter hataları ve kırık kelimeler çok fazla. Bilgi çıkarımı ve alıntı için güvenilir değil."
+Pdfleri ve çıktıları karşılaştırdım gözle aynı zamanda llm'e yükleyerek bu yorumu aldım . " merkezbankası.md:1 ve merkezbankası_eng.md:1 en güçlü çıktılar. Sayfa yapısı, başlıklar ve içerik akışı korunmuş. RAG ve demo için en güvenilir örnekler bunlar. Buna rağmen Türkçe karakterlerde, boşluklarda ve bazı kelimelerde hatalar var. tarama_eng2.md:1 taranmış belgeler içinde en kullanılabilir olanı. Form yapısı büyük ölçüde korunmuş, okunabilirlik kabul edilebilir seviyede. Yine de bazı satırlarda karakter bozulmaları ve küçük tablo/hizalama sorunları var. tarama_eng.md:1 orta seviyede. İçerik genel olarak yakalanmış, ama tablo yoğun form nedeniyle alan ilişkileri tam temiz değil. Yine de anlamı büyük ölçüde taşıyor. tarama_tr2.md:1 zayıf. Türkçe karakterler, satır sırası ve tablo yapısı ciddi biçimde bozulmuş. Sadece kaba içerik fikri veriyor. tarama_tr.md:1 en zayıf çıktı. Karakter hataları ve kırık kelimeler çok fazla. Bilgi çıkarımı ve alıntı için güvenilir değil."
 
-eski türkçe belgelerinde sayfa bölme  ,gürültü düzeltme ekledim ama iyileşme olsa da görüntü zor olduğu için çok iyi değiliz hala ama faz 2 ye geçeceğim artık baya uğraştırdı. 
-
+Eski türkçe belgelerinde sayfa bölme  ,gürültü düzeltme ekledim ama iyileşme olsa da görüntü zor olduğu için çok iyi değiliz hala ama faz 2 ye geçeceğim artık baya uğraştırdı. 
 
 # faz 2
-
-chunk embedding pipeline olusturacagim.
-requirements tarafinda faz 2 icin su kutuphaneleri ekledim:
+chunk embedding pipeline olusturacagim.,requirements tarafinda faz 2 icin su kutuphaneleri ekledim:
 sentence-transformers
 langchain-text-splitters
 torch
-
 torch tarafini da paddle gibi duzenledim.
 cpu satirini yoruma aldim gpu satirini aktif yaptim.
 cu128 icin extra index ekledim.
-
 faz 2 yi ayri bir pipeline olarak kurguladim ki faz 1 e dokunmadan md lerden devam edelim.
 src/chunk_embedding_pipeline.py dosyasini olusturdum.
 
@@ -141,7 +134,7 @@ manifest ile chunks.jsonl ve embeddings.npy tutarliligini da kontrol ettim.
 
 faz 2 bu haliyle tamam gibi .
 
-# 10-05-2026
+# 08-05-2026
 
 faz 3 e basladim.
 faz 2 de urettigim chunk + embedding kullanip chroma tarafinda index kurdum (build-index). bu adimla birlikte retrieval icin veri tabani hazir hale geldi.
@@ -150,7 +143,7 @@ ardindan query testleri yaptim.
 query komutlariyla case study ve turkce ocr/chunking ile ilgili sorular sordum, sistemin en ilgili chunklari getirip getirmedigini kontrol ettim. genel olarak akisin calistigini gordum.
 
 rerank tarafini da karsilastirdim.
-ayni soruyu bir de --disable-rerank ile kostum, yani reranker acik/kapali sekilde sonuclarin siralamasina etkisini gozlemledim.
+ayni soruyu bir de --disable-rerank ile kostum, yani reranker acik/kapali sekilde sonuclarin siralamasina etkisini gozlemledim.Reranker açıkken ilk sıralardaki chunk’lar soru niyetine daha uyumlu geldi; kaynak alaka seviyesi arttı ve cevaplar daha tutarlıydı. Reranker kapalıyken benzerlik skoruyla gelen bazı alakasız chunk’lar üst sıralara çıktı, bu da özellikle yorum sorularında fallback oranını artırdı.
 
 ozetle bugun faz 3 te:
 
@@ -162,7 +155,7 @@ sonraki adim olarak kucuk bir eval seti (jsonl) hazirlayip evaluate ile recall@k
 eval.json dosyası oluşturuldu
 
 
-# 10-05-2026 (devam)
+# 09-05-2026 
 
 eval tarafini tum ocr md'leri kapsayacak sekilde genislettim.
 src/results/eval/eval_docs.jsonl dosyasini olusturup her dokuman icin soru seti hazirladim (toplam 35 soru).
@@ -184,7 +177,7 @@ recall@k: 0.0571
 mrr: 0.0286
 ndcg@k: 0.0361
 
-yorumlarsim:
+yorumlarim:
 - en iyi sonuc 16/5 + rerank acik konfigde geldi.
 - reranker kapaninca metrikler ciddi dustu, yani reranker faydali.
 - su an icin varsayilan retrieval ayarini 16/5 + rerank acik kullanmak daha mantikli.
@@ -234,7 +227,7 @@ ikinci sorun retrieval filtre tarafinda cikti.
 --doc-id ve --chunk-type birlikte verilince chroma su hatayi verdi:
 Expected where to have exactly one operator
 
-sebebi where filtresini duz obje vermemdi.
+sebebi where filtresini düz obje vermemdi.
 retrieval_pipeline.py icindeki _build_where_filter fonksiyonunu degistirdim.
 artik birden fazla filtre varsa $and ile gonderiyor.
 
@@ -296,7 +289,7 @@ faz 4 final karari:
   - device=cuda
   - model_name=qwen3:8b
 
-# 11-05-2026 (faz 5)
+# 10-05-2026 (faz 5)
 
 faz 5'e gectim. hedefim halusinasyon onleme + cikti dogrulama katmanini eklemekti.
 
@@ -364,7 +357,7 @@ faz 5 final karari:
 not:
 - bir sonraki teknik iyilestirme alani faz 5 degil, noisy ocr belgelerde kalite artirma (preprocess/normalization).
 
-# 11-05-2026 (faz 6 - ui stabilizasyon ve gercek kullanici akisi)
+# 10-05-2026 (faz 6 - ui stabilizasyon ve gercek kullanici akisi)
 
 faz 6 tarafinda streamlit ui yi baya degistirdim cunku mevcut akista son kullanici index/chunk gibi teknik seyleri goruyordu ve deneyim iyi degildi.
 hedefi netlestirdim:
@@ -459,7 +452,7 @@ acik not:
 - bu durumda dokuman failed gorunmesi beklenen davranis
 - sonraki iyilestirme alani dokuman kalite metrikleri ve yeniden dene akisi olabilir
 
-# 11-05-2026 (yeni yol haritasi faz 1 - konteynerizasyon ve kurulum izolasyonu)
+# 10-05-2026 (yeni yol haritas)
 
 bu fazda hedefim hardcoded yol bagimliliklarini azaltip calisma ortamini daha tasinabilir yapmakti.
 
@@ -481,7 +474,7 @@ yan etki notlari:
 - poetry lock dosyasi bu asamada uretilmedi; ekipte bir kez poetry lock alinmasi gerekiyor.
 - mevcut requirements.txt akisi korunuyor; gecis donemi icin iki yontem birlikte mevcut.
 
-# 11-05-2026 (yeni yol haritasi faz 2 - gelismis ocr/chunking)
+# 10-05-2026 (yeni yol haritasi gelismis ocr/chunking)
 
 bu fazda odak metin bolutlemeyi karakter bazli yaklasimdan cikarip daha semantik bir akis kurmakti.
 
@@ -511,7 +504,7 @@ risk/not:
 - performans olarak cumle tabanli parcalama daha stabil ama cok uzun teknik cumlelerde chunk boyutu sinirina bagli sert bolme yapabilir.
 - sonraki fazda model degisimi (TR odakli embedding) ile birlikte retrieval kalitesi tekrar olculmeli.
 
-# 11-05-2026 (yeni yol haritasi faz 3 - turkce odakli embedding gecisi)
+# 10-05-2026 ( turkce odakli embedding gecisi)
 
 bu fazda amac bge-m3 varsayilanindan cikarak turkce agirlikli retrieval kalitesini artirmakti.
 
@@ -529,7 +522,7 @@ yaptigim degisiklikler:
 teknik not:
 - retrieval kalitesini net gormek icin ayni eval setiyle faz 2'ye gore karsilastirmali metrik kosulmasi gerekiyor (nDCG/Recall/MRR).
 
-# 11-05-2026 (yeni yol haritasi faz 4 - rrf tabanli hibrit retrieval)
+# 10-05-2026 ( rrf tabanli hibrit retrieval)
 
 bu fazda retrieval katmanini sadece dense (cosine) aramadan cikarip dense+sparse hibrit yapıya tasidim.
 
@@ -553,7 +546,7 @@ risk/not:
 - sparse asama collection.get ile tum filtrelenmis dokumanlari okuyup skorladigi icin buyuk koleksiyonlarda ek maliyet getirebilir.
 - olasi performans darbogazinda disable-hybrid ile dense moda aninda donulebilir.
 
-# 11-05-2026 (yeni yol haritasi faz 5 - semantik guardrail)
+# 10-05-2026 (semantik guardrail)
 
 bu fazda generation tarafindaki lexical token-overlap tabanli dogrulama kaldirildi ve semantik guardrail katmani eklendi.
 
@@ -571,7 +564,7 @@ yaptigim degisiklikler:
 not:
 - air-gapped ortamlarda guardrail modeli local mirror/cache ile onceden hazir olmali; aksi halde sistem fail-open degil fail-safe davranir.
 
-# 11-05-2026 (yeni yol haritasi faz 6 - rag triad otomatik degerlendirme)
+# 10-05-2026 ( rag triad otomatik degerlendirme)
 
 bu fazda ci/cd uyumlu otomatik degerlendirme scripti eklendi.
 
@@ -594,7 +587,7 @@ yaptigim degisiklikler:
 kullanim notu:
 - script accepted false donerse exit code 2 veriyor, boylece ci asamasinda fail condition net yakalaniyor.
 
-# 11-05-2026 (yeni yol haritasi faz 7 - session izolasyonu ve state kaliciligi)
+# 10-05-2026 (session izolasyonu ve state kaliciligi)
 
 bu fazda streamlit ui tarafinda refresh sonrasi kayip ve oturumlarin birbirine karismasi sorununu ele aldim.
 
@@ -647,7 +640,7 @@ yapilanlar:
   - hazirlama sonrasi OCR cihazi (gpu/cpu) kullaniciya gosteriliyor.
 - README'ye windows notu eklendi (tam paddle gpu icin Linux/WSL2 onerisi).
 
-# 11-05-2026 (yeni yol haritasi faz 1 - tamamlayici sertlestirme)
+# 11-05-2026 () tamamlayici sertlestirme)
 
 faz 1 kapsaminda kurulum izolasyonu ve konteynerizasyon adimlarini tamamladim.
 
@@ -688,35 +681,25 @@ etki:
 - runtime klasorleri env ile yonetilebilir hale geldi.
 - proje docker + poetry ile daha deterministik ve tasinabilir calisir duruma geldi.
 
-# 11-05-2026 (tum fazlar - kurumsal kapanis/sertlestirme)
+# 11-05-2026 ( kurumsal kapanis/sertlestirme)
 
 kullanici talebine gore fazlari tek geciste kurumsal seviyeye tamamladim ve eksik operasyonel parcalari kapattim.
 
 bu turda tamamlanan kritik maddeler:
-- faz 1 (konteynerizasyon/izolasyon):
   - dockerfile, docker-compose, .dockerignore, .env.example eklendi.
   - merkezi env-konfig yapisi genisletildi (eval/cache pathleri).
   - poetry source of truth olarak netlestirildi.
-- faz 2 (ocr + semantik chunking):
   - pp-structure akisi ve semantik split yapisi korunup env tabanli cache ile stabil hale getirildi.
-- faz 3 (turkce embedding uzayi):
   - varsayilan tr retrieval model entegrasyonu korunarak pipeline portable profile ile hizalandi.
-- faz 4 (hibrit retrieval):
   - bm25 + rrf + cross-encoder zinciri aktif durumda, mevcut akis korunup enterprise README ile dokumante edildi.
-- faz 5 (semantik guardrail):
   - strict guardrail davranisi ve fallback guvenli cikis korunuyor.
-- faz 6 (otomatik degerlendirme):
   - `src/faz6_eval.py` icine offline fixture modu eklendi (`--answers-file`).
   - bu sayede CI ortaminda Ollama bagimliligi olmadan triad metrik kapisi kosulabilir.
   - github actions workflow eklendi: `.github/workflows/rag_eval.yml`.
-- faz 7 (session izolasyonu):
   - streamlit session id guvenligi sertlestirildi.
   - query param'dan gelen `sid` artik sadece UUIDv4 formatinda kabul ediliyor; degilse yeni izole oturum uretiliyor.
 
-ek not:
-- py_compile ile guncellenen `__pycache__` dosyalari degisik gorunuyor; kod degisiklik kapsaminda degiller.
-
-# 11-05-2026 (faz 2 - gelismis ocr ve semantik bolutleme revizyonu)
+# 11-05-2026 ( gelismis ocr ve semantik bolutleme revizyonu)
 
 kullanici yonlendirmesine gore faz 2 mimarisini havacilik/savunma dokumanlarinda tablo ve hiyerarsi koruyacak sekilde revize ettim.
 
@@ -751,9 +734,7 @@ beklenen etki:
 - tablo iceriginin metin icinde kaybolmamasi
 - LLM tarafinda metadata destekli daha guvenli anlamsal yorum
 
-# 11-05-2026 (faz 2 - semantik bolutleme ve loglama sertlestirme)
-
-faz 2'de istenen teknik gereksinimleri tamamlayacak sekilde ikinci bir sertlestirme turu yaptim.
+# 11-05-2026 (semantik bolutleme ve loglama )
 
 - chunk stratejisi:
   - baslik temelli semantik bolutleme (#, ##, ###) aktif.
@@ -785,7 +766,7 @@ sonuc:
 - havacilik/savunma dokumanlarindaki hiyerarsi ve tablo baglami korunmus chunklar olusuyor.
 - retrieval/generation tarafinda baglam kaybi riski azaltilmis oldu.
 
-# 11-05-2026 (faz 3 - modernbert/mursit gecisi sertlestirme)
+# 11-05-2026 (modernbert/mursit gecisi sertlestirme)
 
 vektor uzayi Mursit-Large-TR-Retrieval (ModernBERT) modeline tasindi.
 
@@ -800,7 +781,7 @@ etki:
 - eski bge-m3 index kalintilarindan kaynakli boyut/model uyumsuzlugu riski azaltildi.
 - turkce teknik terminoloji odakli retrieval kalitesi icin model gecisi operasyonel olarak guvenli hale getirildi.
 
-# 11-05-2026 (faz 4 - hibrit arama ve rrf)
+# 11-05-2026 ( hibrit arama ve rrf)
 
 Hibrit arama ve RRF (Reciprocal Rank Fusion) mimarisi kuruldu.
 
@@ -820,11 +801,8 @@ yapilanlar:
   - `--search-type`
   - `--rerank-pool-k`
 
-etki:
-- teknik kod/parca no gibi lexical sinyallerin kacma riski azalirken,
-  dense semantik kapsama korunarak daha dengeli retrieval elde edildi.
 
-# 11-05-2026 (faz 5 - semantik halusinasyon duvari)
+# 11-05-2026 (semantik halusinasyon duvari)
 
 Semantik halüsinasyon duvarı Turk-LettuceDetect (ModernBERT) ile kuruldu.
 
@@ -841,7 +819,7 @@ yapilanlar:
 not:
 - fallback cevabi guvenlik standardina gore `Bağlamda yeterli bilgi bulunamadı` olarak normalize edildi.
 
-# 11-05-2026 (faz 6 - rag triad otomatik degerlendirme pipeline)
+# 11-05-2026 ( rag triad otomatik degerlendirme pipeline)
 
 RAG Triad otomatik değerlendirme altyapısı (Context, Faithfulness, Relevance) kuruldu.
 
@@ -858,7 +836,7 @@ yapilanlar:
 - genel triad ortalamasina gore PASS/FAIL karari eklenmistir (esik: 0.60).
 - FAIL durumunda script CI uyumu icin exit code 2 doner.
 
-# 11-05-2026 (faz 7 - cok kullanicili session izolasyonu)
+# 11-05-2026 (cok kullanicili session izolasyonu)
 
 Çok kullanıcılı session izolasyonu ve fiziksel veri yalıtımı (UUID tabanlı) kuruldu.
 
@@ -880,7 +858,7 @@ yapilanlar:
   - ilgili session klasoru/indeksleri fiziksel olarak temizleniyor.
   - cleanup fonksiyonunda kok dizin guvenlik kontrolu var (yalnizca `SESSION_ROOT` altinda silme).
 
-# 11-05-2026 (faz 5 - guardrail operasyonel iyilestirme)
+# 11-05-2026 ( guardrail operasyonel iyilestirme)
 
 guardrail modeli erisilemediginde tum cevaplarin fallback'e dusmesi problemi giderildi.
 
@@ -895,7 +873,7 @@ etki:
 - kullanici dogru kaynaklar bulunmusken "Bağlamda yeterli bilgi bulunamadı" kilitlenmesi azaltildi.
 - guvenlikten odun verilmeden operasyonel kullanilabilirlik artirildi.
 
-# 11-05-2026 (faz 4/5 operasyonel performans iyilestirme)
+# 11-05-2026 ( operasyonel performans iyilestirme)
 
 sorgu tarafinda model tekrar yukleme maliyeti azaltildi.
 
@@ -904,11 +882,11 @@ yapilanlar:
 - ayni model+device kombinasyonunda SentenceTransformer ve CrossEncoder tekrar initialize edilmiyor.
 - ilk sorguda warmup maliyeti var, sonraki sorgularda gecikme anlamli sekilde dusuyor.
 
-# 11-05-2026 (faz 7 - talep teyidi)
+# 11-05-2026 ( talep teyidi)
 
 Çok kullanıcılı session izolasyonu ve fiziksel veri yalıtımı kuruldu.
 
-# 11-05-2026 (faz 8 - test ve stres dogrulama)
+# 11-05-2026 (ftest ve stres dogrulama)
 
 faz 8 icin otomatik test harness kuruldu:
 - `src/faz8_test_harness.py`
@@ -927,26 +905,26 @@ harness kapsami:
 not:
 - bu ortamda canli kosuda rapor dosyasi olusmadan process erken sonlandi; komutlar ve script kullanima hazir.
 
-# 11-05-2026 (faz 8 - crash tespiti ve device yonetimi)
+# 11-05-2026 (crash tespiti ve device yonetimi)
 - faz8_test_harness sessiz kapanma nedeni tespit edildi: native crash (EXIT=-1073741819), Python exception degil.
 - kok neden riskini azaltmak icin benchmark/adversarial akislarinda retrieval device parametresi aktif edildi.
 - bugfix: --retrieval-device artik gercekten sk_question cagrilarina aktariliyor (onceden config sabitine kilitliydi).
 - operasyonel onerı: faz8 calistirmasini once --retrieval-device cpu ile dogrulamak, sonra cuda tekrar denemek.
 
-# 12-05-2026 (faz 8 - guardrail inference duzeltmesi)
+# 12-05-2026 (guardrail inference duzeltmesi)
 - generation_pipeline.py icinde TurkLettuceGuardrail pipeline cagrisindan 	runcation/max_length argumanlari kaldirildi (TokenClassificationPipeline uyumlulugu).
 - Hata giderimi: TokenClassificationPipeline._sanitize_parameters() got an unexpected keyword argument 'truncation' artik olusmuyor.
 - Tek-iddia semantik dogrulama smoke testi kosuldu; verify_claim_semantically basarili sonuc dondurdu (supported=True, score>threshold).
 - requirements.txt kontrol edildi: 	ransformers>=4.44.0,<5.0.0 araligi mevcut kullanimla uyumlu.
 
-# 12-05-2026 (faz 8 - kalite sertlestirme)
+# 12-05-2026 ( kalite sertlestirme)
 - Faz 8 degerlendirme metriklerinde nDCG@5 hesaplamasi duzeltildi: ayni ilgili dokumanin tekrar puanlanmasi engellendi ve skor [0,1] araligina sabitlendi.
 - Benchmark akisinda soru bazli 
 elevant_doc_ids kullanilarak doc_id filtre zorlamasi eklendi; alakasiz koleksiyonlardan kaynak cekilmesi azaltildi.
 - generation_pipeline strict guardrail bariyeri sertlestirildi: guardrail modeli unavailable oldugunda fallback zorunlu hale getirildi (guardrail_unavailable_strict_block).
 - strict modda citation coverage < 1.0 durumunda da cevap fallback'e cekiliyor.
 
-# 12-05-2026 (faz 8 - otomatik parametre optimizasyonu)
+# 12-05-2026 ( otomatik parametre optimizasyonu)
 - Yeni script eklendi: src/faz8_optimize.py`n- initial_k/final_k grid aramasi ile benchmark + adversarial testleri otomatik kosup objective score ile en iyi konfigürasyonu seciyor.
 - Cikti: src/results/eval/faz8_optimization_report.json (best/top3/all_runs).
 - Objective: kalite (triad + adversarial pass rate) ve gecikme cezasi birlikte optimize ediliyor.
@@ -957,26 +935,38 @@ elevant_doc_ids kullanilarak doc_id filtre zorlamasi eklendi; alakasiz koleksiyo
 - Ilk sorgu gecikmesini azaltmak icin tek seferlik warmup cagrisi eklendi.
 - Air-gapped hiz ve stabilite icin offline cache env vars varsayilani eklendi (HF_HUB_OFFLINE / TRANSFORMERS_OFFLINE / HF_DATASETS_OFFLINE).
 
-# 12-05-2026 (quick 3q gpu kosusu + venv notu)
-- onceki oturumda hizli test akisinin standard komutlarini netlestirdim:
-  - powershell venv aktivasyon:
-    - .\.venv\Scripts\Activate.ps1
-  - execution policy engeline karsi process-scope gecici cozum:
-    - Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-  - hizli 3 soru gpu eval komutu:
-    - python src/auto_downloads_eval.py --downloads-dir "$HOME\Downloads" --data-dir src/data --max-docs 1 --max-questions-per-doc 3 --embed-device cuda --retrieval-device cuda --ollama-model qwen3:8b --ollama-url http://localhost:11434/api/generate
+# 12-05-2026 (ui + guardrail + testing guncellemesi)
 
-- quick_3q ciktilari incelendi:
-  - src/results/eval/downloads_auto_eval/quick_3q_report.json
-  - src/results/eval/downloads_auto_eval/quick_3q_eval.json
+bugun odagim son kullanici deneyimini duzeltmek, halusinasyon dengesini korumak ve test dokumantasyonunu odev teslimine yaklastirmakti.
 
-- gozlem:
-  - 3/3 soruda cevap fallback'e dustu ("Baglamda yeterli bilgi bulunamadi" varyantlari).
-  - supported_ratio tum sorularda 0.0.
-  - verification reason agirlikli olarak low_retrieval_overlap.
-  - quick_3q_report icinde toplam sure 377.7 sn; ilk soru 377.51 sn, sonraki sorular ~0.1 sn civari.
-  - bu dagilim ilk sorguda model/pipe warmup maliyetini dogruluyor.
+yaptigim ana degisiklikler:
+- `src/ui_streamlit.py` run settings panelini netlestirdim:
+  - model
+  - system instructions
+  - temperature
+  - top_k
+  - top_p
+  - repeat_penalty
+  - thinking level
+  - strict guardrail
+  - fast mode
+- run fingerprint satirinda aktif llm/embedding/reranker + kritik ayarlari gorunur tuttum.
+- normal sohbet akisini guclendirdim:
+  - belge disi kisa mesajlar (`selam` vb.) icin `chat_without_rag` yolunu kullandim.
+  - boylece sistem sadece fallback donen "sert rag botu" gibi davranmiyor.
+- OCR dil secimini UI'dan kaldirdim; kullanici tarafinda tek secim yerine otomatik akis hedefledim.
 
-- kisa yorum:
-  - performans tarafinda warmup etkisi belirgin.
-  - kalite tarafinda retrieval overlap dusuk kaldigi icin strict/verification katmaninda fallback kilidi olusuyor.
+generation/guardrail tarafi:
+- `src/generation_pipeline.py` icinde generation parametrelerinin UI'dan gecmesini netlestirdim (`temperature`, `top_k`, `top_p`, `repeat_penalty`).
+- strict guardrail + fallback dengesini tekrar gozden gecirdim:
+  - belgede yeterli dayanak yoksa fallback korunuyor.
+  - uygun durumda kaynakli cevap korunuyor.
+- query mode davranisini (chat / rag_fact / rag_interpret) pratik testlere gore tune ettim.
+
+gercek test gozlemleri:
+- `tarama_eng.png` icin canli UI testinde:
+  - fakt soruda kaynakli dogru cevap alinabildi (`supported_ratio=1`, `confidence=high`).
+  - belirsiz/kisa sorularda fallback goruldu.
+  - ozet sorusunda anlamli ve kaynakla uyumlu cikti alindi.
+- bu sonuc OCR gurultusu + soru netligi + guardrail esiginin birlikte kaliteyi belirledigini tekrar dogruladi.
+
