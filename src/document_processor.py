@@ -49,7 +49,13 @@ class DocumentProcessor:
     SUPPORTED_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
     SUPPORTED_EXTENSIONS = SUPPORTED_IMAGE_EXTENSIONS | {".pdf"}
 
-    def __init__(self, use_gpu: bool = False, pdf_zoom: float = 2.0) -> None:
+    def __init__(
+        self,
+        use_gpu: bool = False,
+        pdf_zoom: float = 2.0,
+        ocr_lang: str = "tr",
+        ocr_profile: str = "default",
+    ) -> None:
         """OCR ve layout pipeline'ını başlat.
 
         Args:
@@ -58,6 +64,8 @@ class DocumentProcessor:
         """
         self.use_gpu = use_gpu
         self.pdf_zoom = pdf_zoom
+        self.ocr_lang = (ocr_lang or "tr").strip().lower()
+        self.ocr_profile = (ocr_profile or "default").strip().lower()
 
         self.structure_v3 = None
         self.legacy_structure = None
@@ -114,15 +122,25 @@ class DocumentProcessor:
             try:
                 # PP-StructureV3: layout + OCR + table parsing + reading order.
                 # `lang='tr'` Türkçe modelini yükler, Latin karakter seti ile İngilizceyi de kapsar.
-                self.structure_v3 = PPStructureV3(
-                    lang="tr",
-                    device=device,
-                    use_doc_orientation_classify=True,
-                    use_doc_unwarping=False,
-                    use_textline_orientation=True,
-                    enable_mkldnn=False,
+                pp_kwargs: Dict[str, Any] = {
+                    "lang": self.ocr_lang if self.ocr_lang in {"tr", "en"} else "tr",
+                    "device": device,
+                    "use_doc_orientation_classify": True,
+                    "use_doc_unwarping": False,
+                    "use_textline_orientation": True,
+                    "enable_mkldnn": False,
+                }
+                if self.ocr_profile == "lightweight":
+                    pp_kwargs["use_formula_recognition"] = False
+                    pp_kwargs["use_textline_orientation"] = False
+
+                self.structure_v3 = PPStructureV3(**pp_kwargs)
+                logger.info(
+                    "PP-StructureV3 başarıyla başlatıldı (lang=%s, profile=%s, device=%s).",
+                    pp_kwargs.get("lang"),
+                    self.ocr_profile,
+                    device,
                 )
-                logger.info("PP-StructureV3 başarıyla başlatıldı (lang=tr, device=%s).", device)
             except Exception as exc:
                 structure_errors.append(f"PPStructureV3 init hatası: {exc}")
                 logger.warning("PPStructureV3 başlatılamadı, PPStructure fallback denenecek.")
@@ -135,7 +153,7 @@ class DocumentProcessor:
                     layout=True,
                     table=True,
                     ocr=True,
-                    lang="tr",
+                    lang=self.ocr_lang if self.ocr_lang in {"tr", "en"} else "tr",
                     return_ocr_result_in_table=True,
                 )
                 logger.info("Legacy PPStructure başlatıldı (lang=tr).")
@@ -868,9 +886,14 @@ class DocumentProcessor:
             )
 
 
-def process_document_to_markdown(file_path: str | Path, use_gpu: bool = False) -> str:
+def process_document_to_markdown(
+    file_path: str | Path,
+    use_gpu: bool = False,
+    ocr_lang: str = "tr",
+    ocr_profile: str = "default",
+) -> str:
     """Kullanımı kolay fonksiyonel arayüz."""
-    processor = DocumentProcessor(use_gpu=use_gpu)
+    processor = DocumentProcessor(use_gpu=use_gpu, ocr_lang=ocr_lang, ocr_profile=ocr_profile)
     return processor.process_document(file_path)
 
 

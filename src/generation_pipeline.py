@@ -86,9 +86,28 @@ def build_context_block(contexts: Sequence[Dict[str, Any]]) -> str:
     return "\n\n".join(parts).strip()
 
 
-def build_prompt(question: str, context_block: str) -> str:
+def _resolve_thinking_instruction(thinking_level: Optional[str]) -> str:
+    level = str(thinking_level or "").strip().lower()
+    if level == "low":
+        return "Dusuk dusunme seviyesi: kisa, dogrudan ve gereksiz detay vermeden cevapla."
+    if level == "high":
+        return "Yuksek dusunme seviyesi: adim adim, daha dikkatli ve kaynak-kisitli dogrulama ile cevapla."
+    return "Orta dusunme seviyesi: dengeleyici, acik ve oz bir cevap ver."
+
+
+def build_prompt(
+    question: str,
+    context_block: str,
+    system_instructions: Optional[str] = None,
+    thinking_level: Optional[str] = None,
+) -> str:
+    extra_system = (system_instructions or "").strip()
+    extra_block = f"\nEK SISTEM TALIMATI:\n{extra_system}\n" if extra_system else ""
+    thinking_block = _resolve_thinking_instruction(thinking_level=thinking_level)
     return (
         f"{SYSTEM_RULES}\n"
+        f"{extra_block}"
+        f"DUSUNME KILIDI:\n{thinking_block}\n\n"
         f"BAGLAM:\n{context_block}\n\n"
         f"SORU:\n{question}\n\n"
         "CEVAP KURALI:\n"
@@ -568,6 +587,9 @@ def ask_question(
     context_limit: int = 4,
     auto_doc_filter: bool = True,
     retrieval_min_overlap: float = 0.08,
+    system_instructions: Optional[str] = None,
+    temperature: Optional[float] = None,
+    thinking_level: Optional[str] = None,
 ) -> Dict[str, Any]:
     effective_initial_k = initial_k
     effective_final_k = final_k
@@ -688,8 +710,19 @@ def ask_question(
             },
         }
 
-    prompt = build_prompt(question=question, context_block=build_context_block(contexts))
-    raw_answer = call_ollama(prompt=prompt, model_name=model_name, ollama_url=ollama_url)
+    prompt = build_prompt(
+        question=question,
+        context_block=build_context_block(contexts),
+        system_instructions=system_instructions,
+        thinking_level=thinking_level,
+    )
+    effective_temperature = 0.0 if temperature is None else float(temperature)
+    raw_answer = call_ollama(
+        prompt=prompt,
+        model_name=model_name,
+        ollama_url=ollama_url,
+        temperature=effective_temperature,
+    )
     verification = verify_answer(raw_answer, contexts)
     filtered_answer = _filter_supported_claims(raw_answer=raw_answer, verification=verification)
     answer = filtered_answer or raw_answer
@@ -745,6 +778,9 @@ def ask_question(
             "effective_overlap_threshold": effective_overlap_threshold,
             "avg_vector_score": avg_vector_score,
             "cross_lingual_like": cross_lingual_like,
+            "temperature": effective_temperature,
+            "thinking_level": str(thinking_level or "medium"),
+            "system_instructions_enabled": bool((system_instructions or "").strip()),
         },
     }
 

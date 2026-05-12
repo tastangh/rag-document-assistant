@@ -1,9 +1,4 @@
-"""Basit calisan UI: Yukle -> OCR -> Index -> Soru sor.
-
-Faz 7: session izolasyonu + state kaliciligi.
-"""
-
-from __future__ import annotations
+﻿from __future__ import annotations
 
 import json
 import os
@@ -13,6 +8,8 @@ import time
 import uuid
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from urllib.error import URLError
+from urllib.request import urlopen
 
 import streamlit as st
 
@@ -27,7 +24,19 @@ from config import (
 )
 from document_processor import process_document_to_markdown
 from generation_pipeline import ask_question
+from model_catalog import (
+    EMBEDDING_MODELS,
+    LLM_MODELS,
+    MODEL_PRESETS,
+    OCR_LANG_OPTIONS,
+    OCR_PROFILE_OPTIONS,
+    RERANK_MODELS,
+    resolve_local_hf_model,
+)
 from retrieval_pipeline import DEFAULT_COLLECTION, build_vector_index
+
+
+DEFAULT_MODELS = list(dict.fromkeys([OLLAMA_MODEL] + LLM_MODELS))
 
 
 def _effective_ocr_gpu_enabled() -> bool:
@@ -50,7 +59,6 @@ def _atomic_write_json(path: Path, payload: Dict[str, Any]) -> None:
 
 def _resolve_session_id() -> str:
     sid = str(st.query_params.get("sid", "")).strip()
-    # Yalnizca UUIDv4 formatini kabul et; degilse yeni oturum uret.
     uuid_v4_re = re.compile(
         r"^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$",
         flags=re.IGNORECASE,
@@ -100,7 +108,6 @@ def _clear_dir(path: Path) -> None:
                 try:
                     item.unlink(missing_ok=True)
                 except PermissionError:
-                    # Windows dosya kilidi devam ediyorsa sonraki rebuild'de tekrar denenecek.
                     continue
         elif item.is_dir():
             _clear_dir(item)
@@ -126,6 +133,21 @@ def _default_state() -> Dict[str, Any]:
         "docs": [],
         "last_error": "",
         "model_name": OLLAMA_MODEL,
+        "system_instructions": "",
+        "temperature": 0.0,
+        "thinking_level": "medium",
+        "strict_guardrail": True,
+        "fast_mode": True,
+        "initial_k": 12,
+        "final_k": 4,
+        "retrieval_min_overlap": 0.08,
+        "doc_filter_mode": "auto",
+        "manual_doc_id": "",
+        "preset_id": "tr_balanced",
+        "embedding_model": EMBED_MODEL_NAME,
+        "reranker_model": "BAAI/bge-reranker-v2-m3",
+        "ocr_lang": "tr",
+        "ocr_profile": "default",
         "session_id": "",
         "access_key": "",
     }
@@ -149,7 +171,22 @@ def _save_state(paths: Dict[str, Path], session_id: str, access_key: str) -> Non
         "ready": bool(st.session_state.get("ready", False)),
         "docs": st.session_state.get("docs", []),
         "last_error": st.session_state.get("last_error", ""),
-        "model_name": OLLAMA_MODEL,
+        "model_name": st.session_state.get("model_name", OLLAMA_MODEL),
+        "system_instructions": st.session_state.get("system_instructions", ""),
+        "temperature": float(st.session_state.get("temperature", 0.0)),
+        "thinking_level": st.session_state.get("thinking_level", "medium"),
+        "strict_guardrail": bool(st.session_state.get("strict_guardrail", True)),
+        "fast_mode": bool(st.session_state.get("fast_mode", True)),
+        "initial_k": int(st.session_state.get("initial_k", 12)),
+        "final_k": int(st.session_state.get("final_k", 4)),
+        "retrieval_min_overlap": float(st.session_state.get("retrieval_min_overlap", 0.08)),
+        "doc_filter_mode": st.session_state.get("doc_filter_mode", "auto"),
+        "manual_doc_id": st.session_state.get("manual_doc_id", ""),
+        "preset_id": st.session_state.get("preset_id", "tr_balanced"),
+        "embedding_model": st.session_state.get("embedding_model", EMBED_MODEL_NAME),
+        "reranker_model": st.session_state.get("reranker_model", "BAAI/bge-reranker-v2-m3"),
+        "ocr_lang": st.session_state.get("ocr_lang", "tr"),
+        "ocr_profile": st.session_state.get("ocr_profile", "default"),
         "session_id": session_id,
         "access_key": access_key,
     }
@@ -159,7 +196,6 @@ def _save_state(paths: Dict[str, Path], session_id: str, access_key: str) -> Non
 def _cleanup_session(runtime_root: Path) -> None:
     resolved_root = SESSION_ROOT.resolve()
     resolved_target = runtime_root.resolve()
-    # Guvenlik bariyeri: yalnizca SESSION_ROOT altindaki klasorler temizlenebilir.
     if resolved_root not in resolved_target.parents and resolved_target != resolved_root:
         raise RuntimeError("Guvenlik hatasi: Session dizini beklenen kok altinda degil.")
     _clear_dir(resolved_target)
@@ -170,26 +206,18 @@ def _cleanup_session(runtime_root: Path) -> None:
 
 
 def _validate_or_recover_session(session_id: str, access_key: str, paths: Dict[str, Path]) -> tuple[str, str, Dict[str, Any]]:
-    """Temel access control + refresh recovery.
-
-    - state dosyasinda access_key varsa query key ile esit olmali.
-    - eslesme yoksa yeni session olustur (manual sid degistirme korumasi).
-    """
     loaded = _load_state(paths["state_file"])
     stored_sid = str(loaded.get("session_id", "")).strip()
     stored_key = str(loaded.get("access_key", "")).strip()
 
-    # Ilk olusum: state'e anahtar yazilacak.
     if not stored_sid and not stored_key:
         loaded["session_id"] = session_id
         loaded["access_key"] = access_key
         return session_id, access_key, loaded
 
-    # Recovery: aynı session + key ile devam.
     if stored_sid == session_id and stored_key and stored_key == access_key:
         return session_id, access_key, loaded
 
-    # Yetkisiz/manuel manipule sid denemesi -> yeni izole session.
     new_sid = str(uuid.uuid4())
     new_key = secrets.token_urlsafe(24)
     st.query_params["sid"] = new_sid
@@ -208,19 +236,24 @@ def _prepare_documents(
     ocr_md_dir: Path,
     chunk_dir: Path,
     vector_dir: Path,
+    embed_model_name: str,
+    ocr_lang: str,
+    ocr_profile: str,
 ) -> Dict[str, Any]:
     _clear_dir(ocr_md_dir)
     _clear_dir(chunk_dir)
-    # Windows'ta Chroma dosyalari process tarafindan kilitli kalabildigi icin
-    # vector klasorunu fiziksel olarak silmiyoruz.
-    # Yeniden kurulum collection seviyesinde build_vector_index icinde yapiliyor.
 
     failed: List[Dict[str, str]] = []
     written_md: List[str] = []
     ocr_gpu_enabled = _effective_ocr_gpu_enabled()
     for p in file_paths:
         try:
-            markdown = process_document_to_markdown(p, use_gpu=ocr_gpu_enabled)
+            markdown = process_document_to_markdown(
+                p,
+                use_gpu=ocr_gpu_enabled,
+                ocr_lang=ocr_lang,
+                ocr_profile=ocr_profile,
+            )
             md_path = ocr_md_dir / f"{p.stem}.md"
             md_path.write_text(markdown, encoding="utf-8")
             written_md.append(md_path.name)
@@ -228,16 +261,12 @@ def _prepare_documents(
             failed.append({"file": p.name, "error": str(exc)})
 
     if not written_md:
-        return {
-            "ok": False,
-            "message": "Hicbir dosya OCR edilemedi.",
-            "failed": failed,
-        }
+        return {"ok": False, "message": "Hicbir dosya OCR edilemedi.", "failed": failed}
 
     run_pipeline(
         input_dir=ocr_md_dir,
         output_dir=chunk_dir,
-        model_name=EMBED_MODEL_NAME,
+        model_name=embed_model_name,
         chunk_size=1200,
         chunk_overlap=200,
         min_chunk_size=120,
@@ -256,6 +285,9 @@ def _prepare_documents(
         "failed": failed,
         "indexed_chunk_count": idx.get("indexed_chunk_count", 0),
         "ocr_gpu_enabled": ocr_gpu_enabled,
+        "embed_model_name": embed_model_name,
+        "ocr_lang": ocr_lang,
+        "ocr_profile": ocr_profile,
     }
 
 
@@ -270,6 +302,13 @@ def _render_sources(sources: List[Dict[str, Any]]) -> None:
             )
 
 
+def _render_debug(details: Dict[str, Any]) -> None:
+    if not details:
+        return
+    with st.expander("Debug / Details", expanded=False):
+        st.json(details)
+
+
 def _doc_id_from_doc_entry(doc: Dict[str, Any]) -> Optional[str]:
     path = str(doc.get("path", "")).strip()
     if not path:
@@ -280,30 +319,34 @@ def _doc_id_from_doc_entry(doc: Dict[str, Any]) -> Optional[str]:
         return None
 
 
-def _resolve_selected_doc_id() -> Optional[str]:
+def _doc_options() -> List[tuple[str, str]]:
     ready_docs = [d for d in st.session_state.get("docs", []) if d.get("status") == "ready"]
-    if not ready_docs:
-        return None
-
-    doc_options = []
+    options: List[tuple[str, str]] = []
     for d in ready_docs:
         did = _doc_id_from_doc_entry(d)
         if did:
-            doc_options.append((str(d.get("name", did)), did))
-    if not doc_options:
-        return None
+            options.append((str(d.get("name", did)), did))
+    return options
 
-    if len(doc_options) == 1:
-        return doc_options[0][1]
 
-    labels = ["Tum hazir dokumanlar"] + [name for name, _ in doc_options]
-    selected = st.selectbox("Soru kapsamı", labels, index=0)
-    if selected == "Tum hazir dokumanlar":
-        return None
-    for name, did in doc_options:
-        if name == selected:
-            return did
+def _resolve_selected_doc_id(mode: str, manual_doc_id: str) -> Optional[str]:
+    if mode == "manual":
+        return manual_doc_id.strip() or None
     return None
+
+
+def _ollama_health(ollama_url: str = "http://localhost:11434/api/generate") -> tuple[bool, str]:
+    tags_url = ollama_url.rstrip("/").replace("/api/generate", "") + "/api/tags"
+    try:
+        with urlopen(tags_url, timeout=2) as resp:
+            status = int(getattr(resp, "status", 200))
+            if status >= 400:
+                return False, f"HTTP {status}"
+        return True, "ok"
+    except URLError as exc:
+        return False, str(getattr(exc, "reason", exc))
+    except Exception as exc:
+        return False, str(exc)
 
 
 def main() -> None:
@@ -325,6 +368,22 @@ def main() -> None:
         st.session_state.ready = bool(state.get("ready", False))
         st.session_state.docs = list(state.get("docs", []))
         st.session_state.last_error = str(state.get("last_error", ""))
+        st.session_state.model_name = str(state.get("model_name", OLLAMA_MODEL))
+        st.session_state.system_instructions = str(state.get("system_instructions", ""))
+        st.session_state.temperature = float(state.get("temperature", 0.0))
+        st.session_state.thinking_level = str(state.get("thinking_level", "medium"))
+        st.session_state.strict_guardrail = bool(state.get("strict_guardrail", True))
+        st.session_state.fast_mode = bool(state.get("fast_mode", True))
+        st.session_state.initial_k = int(state.get("initial_k", 12))
+        st.session_state.final_k = int(state.get("final_k", 4))
+        st.session_state.retrieval_min_overlap = float(state.get("retrieval_min_overlap", 0.08))
+        st.session_state.doc_filter_mode = str(state.get("doc_filter_mode", "auto"))
+        st.session_state.manual_doc_id = str(state.get("manual_doc_id", ""))
+        st.session_state.preset_id = str(state.get("preset_id", "tr_balanced"))
+        st.session_state.embedding_model = str(state.get("embedding_model", EMBED_MODEL_NAME))
+        st.session_state.reranker_model = str(state.get("reranker_model", "BAAI/bge-reranker-v2-m3"))
+        st.session_state.ocr_lang = str(state.get("ocr_lang", "tr"))
+        st.session_state.ocr_profile = str(state.get("ocr_profile", "default"))
         st.session_state.session_id = session_id
         st.session_state.access_key = access_key
         st.session_state.bootstrapped = True
@@ -334,32 +393,161 @@ def main() -> None:
         st.session_state.setdefault("ready", False)
         st.session_state.setdefault("docs", [])
         st.session_state.setdefault("last_error", "")
+        st.session_state.setdefault("model_name", OLLAMA_MODEL)
+        st.session_state.setdefault("system_instructions", "")
+        st.session_state.setdefault("temperature", 0.0)
+        st.session_state.setdefault("thinking_level", "medium")
+        st.session_state.setdefault("strict_guardrail", True)
+        st.session_state.setdefault("fast_mode", True)
+        st.session_state.setdefault("initial_k", 12)
+        st.session_state.setdefault("final_k", 4)
+        st.session_state.setdefault("retrieval_min_overlap", 0.08)
+        st.session_state.setdefault("doc_filter_mode", "auto")
+        st.session_state.setdefault("manual_doc_id", "")
+        st.session_state.setdefault("preset_id", "tr_balanced")
+        st.session_state.setdefault("embedding_model", EMBED_MODEL_NAME)
+        st.session_state.setdefault("reranker_model", "BAAI/bge-reranker-v2-m3")
+        st.session_state.setdefault("ocr_lang", "tr")
+        st.session_state.setdefault("ocr_profile", "default")
         st.session_state.setdefault("session_id", session_id)
         st.session_state.setdefault("access_key", access_key)
         st.session_state.setdefault("warmup_done", False)
 
-    # Offline cache tercihleri (air-gapped uyumu)
     os.environ.setdefault("HF_HUB_OFFLINE", "1")
     os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
     os.environ.setdefault("HF_DATASETS_OFFLINE", "1")
 
+    with st.sidebar:
+        st.subheader("Run settings")
+        preset_labels = [p["label"] for p in MODEL_PRESETS]
+        preset_ids = [p["id"] for p in MODEL_PRESETS]
+        preset_idx = preset_ids.index(st.session_state.preset_id) if st.session_state.preset_id in preset_ids else 0
+        picked_preset_label = st.selectbox("Preset", options=preset_labels, index=preset_idx)
+        picked_preset = MODEL_PRESETS[preset_labels.index(picked_preset_label)]
+        if picked_preset["id"] != st.session_state.preset_id:
+            st.session_state.preset_id = picked_preset["id"]
+            st.session_state.model_name = picked_preset["llm_model"]
+            st.session_state.embedding_model = picked_preset["embedding_model"]
+            st.session_state.reranker_model = picked_preset["reranker_model"]
+            st.session_state.ocr_lang = picked_preset["ocr_lang"]
+            st.session_state.ocr_profile = picked_preset["ocr_profile"]
+
+        model_options = list(dict.fromkeys(DEFAULT_MODELS + [str(st.session_state.model_name)]))
+        current_model = st.selectbox(
+            "Model",
+            options=model_options,
+            index=max(0, model_options.index(st.session_state.model_name)) if st.session_state.model_name in model_options else 0,
+        )
+        custom_model = st.text_input("Custom model (optional)", value="")
+        st.session_state.model_name = custom_model.strip() or current_model
+        st.session_state.embedding_model = st.selectbox(
+            "Embedding model",
+            options=list(dict.fromkeys(EMBEDDING_MODELS + [str(st.session_state.embedding_model)])),
+            index=(
+                list(dict.fromkeys(EMBEDDING_MODELS + [str(st.session_state.embedding_model)])).index(
+                    str(st.session_state.embedding_model)
+                )
+            ),
+        )
+        st.session_state.reranker_model = st.selectbox(
+            "Reranker model",
+            options=list(dict.fromkeys(RERANK_MODELS + [str(st.session_state.reranker_model)])),
+            index=(
+                list(dict.fromkeys(RERANK_MODELS + [str(st.session_state.reranker_model)])).index(
+                    str(st.session_state.reranker_model)
+                )
+            ),
+        )
+        st.session_state.ocr_lang = st.selectbox(
+            "OCR language",
+            options=OCR_LANG_OPTIONS,
+            index=OCR_LANG_OPTIONS.index(st.session_state.ocr_lang) if st.session_state.ocr_lang in OCR_LANG_OPTIONS else 0,
+        )
+        st.session_state.ocr_profile = st.selectbox(
+            "OCR profile",
+            options=OCR_PROFILE_OPTIONS,
+            index=(
+                OCR_PROFILE_OPTIONS.index(st.session_state.ocr_profile)
+                if st.session_state.ocr_profile in OCR_PROFILE_OPTIONS
+                else 0
+            ),
+        )
+
+        st.session_state.system_instructions = st.text_area(
+            "System instructions",
+            value=st.session_state.system_instructions,
+            height=110,
+            placeholder="Model davranisi icin ek talimat yazabilirsin...",
+        )
+        st.session_state.temperature = st.slider(
+            "Temperature", min_value=0.0, max_value=1.5, step=0.1, value=float(st.session_state.temperature)
+        )
+        st.session_state.thinking_level = st.selectbox(
+            "Thinking level",
+            options=["low", "medium", "high"],
+            index=["low", "medium", "high"].index(str(st.session_state.thinking_level)) if str(st.session_state.thinking_level) in {"low", "medium", "high"} else 1,
+        )
+
+        st.markdown("---")
+        st.subheader("RAG controls")
+        st.session_state.strict_guardrail = st.toggle("Strict guardrail", value=bool(st.session_state.strict_guardrail))
+        st.session_state.fast_mode = st.toggle("Fast mode", value=bool(st.session_state.fast_mode))
+        st.session_state.initial_k = int(st.number_input("Initial k", min_value=1, max_value=64, value=int(st.session_state.initial_k), step=1))
+        st.session_state.final_k = int(st.number_input("Final k", min_value=1, max_value=16, value=int(st.session_state.final_k), step=1))
+        st.session_state.retrieval_min_overlap = float(
+            st.slider("Retrieval min overlap", min_value=0.0, max_value=0.3, value=float(st.session_state.retrieval_min_overlap), step=0.01)
+        )
+
+        mode_label = st.selectbox(
+            "Doc filter mode",
+            options=["auto", "manual"],
+            index=0 if st.session_state.doc_filter_mode == "auto" else 1,
+        )
+        st.session_state.doc_filter_mode = mode_label
+
+        docs = _doc_options()
+        if mode_label == "manual" and docs:
+            labels = [name for name, _ in docs]
+            ids = [did for _, did in docs]
+            default_idx = ids.index(st.session_state.manual_doc_id) if st.session_state.manual_doc_id in ids else 0
+            picked = st.selectbox("Manual doc", options=labels, index=default_idx)
+            st.session_state.manual_doc_id = ids[labels.index(picked)]
+        elif mode_label == "manual":
+            st.caption("Manual doc secimi icin once belgeleri hazirla.")
+            st.session_state.manual_doc_id = ""
+        else:
+            st.session_state.manual_doc_id = ""
+
+        ok, msg = _ollama_health()
+        st.caption(f"Model hazir mi?: {'Evet' if ok else 'Hayir'} ({msg})")
+
     st.title("Belge Asistani")
     st.caption("1) PDF/resim yukle  2) Belgeleri Hazirla  3) Soru sor")
     st.caption(f"Oturum: `{session_id}`")
-    if st.button("Oturumu Kapat", use_container_width=False):
-        _cleanup_session(paths["runtime"])
-        st.session_state.clear()
-        fresh_sid = str(uuid.uuid4())
-        fresh_key = secrets.token_urlsafe(24)
-        st.query_params["sid"] = fresh_sid
-        st.query_params["sk"] = fresh_key
-        st.rerun()
-
-    uploaded_files = st.file_uploader(
-        "Belgeleri yukle",
-        type=["pdf", "png", "jpg", "jpeg"],
-        accept_multiple_files=True,
+    st.caption(
+        "Run fingerprint: "
+        f"llm={st.session_state.model_name} | emb={st.session_state.embedding_model} | "
+        f"rerank={st.session_state.reranker_model} | temp={st.session_state.temperature:.1f} | "
+        f"strict={st.session_state.strict_guardrail} | fast={st.session_state.fast_mode}"
     )
+
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("Reset chat only", use_container_width=True):
+            st.session_state.messages = []
+            _save_state(paths, session_id=session_id, access_key=access_key)
+            st.rerun()
+    with c2:
+        if st.button("Reset index + chat", use_container_width=True):
+            _cleanup_session(paths["runtime"])
+            st.session_state.clear()
+            fresh_sid = str(uuid.uuid4())
+            fresh_key = secrets.token_urlsafe(24)
+            st.query_params["sid"] = fresh_sid
+            st.query_params["sk"] = fresh_key
+            st.rerun()
+
+    uploaded_files = st.file_uploader("Belgeleri yukle", type=["pdf", "png", "jpg", "jpeg"], accept_multiple_files=True)
 
     if st.button("Belgeleri Hazirla", type="primary", use_container_width=True):
         if not uploaded_files:
@@ -372,6 +560,9 @@ def main() -> None:
                     ocr_md_dir=paths["ocr_md_dir"],
                     chunk_dir=paths["chunk_dir"],
                     vector_dir=paths["vector_dir"],
+                    embed_model_name=resolve_local_hf_model(str(st.session_state.embedding_model), "embedding"),
+                    ocr_lang=str(st.session_state.ocr_lang),
+                    ocr_profile=str(st.session_state.ocr_profile),
                 )
             st.session_state.docs = [{"name": p.name, "path": str(p), "status": "uploaded"} for p in saved]
             if not result["ok"]:
@@ -385,18 +576,18 @@ def main() -> None:
                 st.session_state.last_error = ""
                 failed_names = {f["file"] for f in result.get("failed", [])}
                 st.session_state.docs = [
-                    {
-                        "name": p.name,
-                        "path": str(p),
-                        "status": "failed" if p.name in failed_names else "ready",
-                    }
+                    {"name": p.name, "path": str(p), "status": "failed" if p.name in failed_names else "ready"}
                     for p in saved
                 ]
                 st.success(
                     f"Hazir. Index chunk sayisi: {result.get('indexed_chunk_count', 0)} | "
                     f"OCR basarili dosya: {len(result.get('written_md', []))}"
                 )
-                st.caption(f"OCR cihazi: {'gpu' if result.get('ocr_gpu_enabled') else 'cpu'}")
+                st.caption(
+                    f"OCR cihazi: {'gpu' if result.get('ocr_gpu_enabled') else 'cpu'} | "
+                    f"lang={result.get('ocr_lang')} | profile={result.get('ocr_profile')} | "
+                    f"embedding={result.get('embed_model_name')}"
+                )
                 for f in result.get("failed", []):
                     st.caption(f"{f['file']}: {f['error']}")
                 st.session_state.warmup_done = False
@@ -406,7 +597,11 @@ def main() -> None:
         with st.expander("Aktif dokumanlar", expanded=False):
             for d in st.session_state.docs:
                 st.markdown(f"- `{d.get('name','')}` ({d.get('status','unknown')})")
-    selected_doc_id = _resolve_selected_doc_id()
+
+    selected_doc_id = _resolve_selected_doc_id(
+        mode=str(st.session_state.doc_filter_mode),
+        manual_doc_id=str(st.session_state.manual_doc_id),
+    )
     if selected_doc_id:
         st.caption(f"Aktif doc_id filtresi: `{selected_doc_id}`")
 
@@ -414,6 +609,7 @@ def main() -> None:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
             _render_sources(msg.get("sources", []))
+            _render_debug(msg.get("details", {}))
 
     prompt = st.chat_input("Belgeyle ilgili sorunu yaz...")
     if prompt:
@@ -442,32 +638,60 @@ def main() -> None:
                                 final_k=3,
                                 device=RETRIEVAL_DEVICE,
                                 disable_rerank=True,
-                                model_name=OLLAMA_MODEL,
-                                strict_guardrail=True,
-                                fast_mode=True,
+                                model_name=st.session_state.model_name,
+                                reranker_model=resolve_local_hf_model(str(st.session_state.reranker_model), "reranker"),
+                                strict_guardrail=bool(st.session_state.strict_guardrail),
+                                fast_mode=bool(st.session_state.fast_mode),
                                 doc_id=selected_doc_id,
+                                system_instructions=st.session_state.system_instructions,
+                                temperature=float(st.session_state.temperature),
+                                thinking_level=st.session_state.thinking_level,
                             )
                             st.session_state.warmup_done = True
+
+                        t0 = time.perf_counter()
                         result = ask_question(
                             question=prompt,
                             persist_dir=paths["vector_dir"],
                             collection_name=DEFAULT_COLLECTION,
-                            initial_k=12,
-                            final_k=4,
+                            initial_k=int(st.session_state.initial_k),
+                            final_k=int(st.session_state.final_k),
                             device=RETRIEVAL_DEVICE,
                             disable_rerank=False,
-                            model_name=OLLAMA_MODEL,
-                            strict_guardrail=True,
-                            fast_mode=True,
+                            model_name=st.session_state.model_name,
+                            reranker_model=resolve_local_hf_model(str(st.session_state.reranker_model), "reranker"),
+                            strict_guardrail=bool(st.session_state.strict_guardrail),
+                            fast_mode=bool(st.session_state.fast_mode),
                             context_limit=4,
                             doc_id=selected_doc_id,
+                            retrieval_min_overlap=float(st.session_state.retrieval_min_overlap),
+                            system_instructions=st.session_state.system_instructions,
+                            temperature=float(st.session_state.temperature),
+                            thinking_level=st.session_state.thinking_level,
                         )
+                        latency = time.perf_counter() - t0
+
                         answer = str(result.get("answer", ""))
                         sources = list(result.get("sources", []) or [])
+                        verification = result.get("verification", {}) or {}
+                        details = {
+                            "latency_sec": round(latency, 3),
+                            "sources_count": len(sources),
+                            "fallback_used": bool(verification.get("fallback_used", False)),
+                            "supported_ratio": verification.get("supported_ratio"),
+                            "confidence": verification.get("confidence_level", verification.get("confidence")),
+                        }
+
                         st.markdown(answer)
                         _render_sources(sources)
+                        _render_debug(details)
                         st.session_state.messages.append(
-                            {"role": "assistant", "content": answer, "sources": sources}
+                            {
+                                "role": "assistant",
+                                "content": answer,
+                                "sources": sources,
+                                "details": details,
+                            }
                         )
                         _save_state(paths, session_id=session_id, access_key=access_key)
                     except Exception as exc:

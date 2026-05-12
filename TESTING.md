@@ -27,3 +27,12 @@ sonuclar (ozet):
 yorum:
 - ilk sorguda belirgin warmup maliyeti var.
 - retrieval overlap dusuk kaldigi icin answer quality fallback'te kaliyor.
+
+
+
+-----------------------------------------
+tek tek döküman yükle soru sor gibi testler yapıyorum yorumlama zayıf kalıyor buna göre güncelleme yapıyorum.
+
+Çok yavaş çalışıyor
+
+Ui da belge yüklüyorum belgeyi hazırlatıyorum ve sorular soruyorum.

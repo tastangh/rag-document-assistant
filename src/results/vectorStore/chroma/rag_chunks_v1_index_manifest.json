@@ -1,9 +1,0 @@
-{
-  "collection_name": "rag_chunks_v1",
-  "persist_dir": "src\\results\\vectorStore\\chroma",
-  "source_artifacts_dir": "src\\results\\chunkEmbeddings",
-  "indexed_chunk_count": 130,
-  "embedding_dim": 1024,
-  "model_name": "newmindai/Mursit-Large-TR-Retrieval",
-  "built_at": "2026-05-11T20:48:25.037464+00:00"
-}

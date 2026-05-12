@@ -1,9 +1,0 @@
-{
-  "collection_name": "rag_chunks_v1",
-  "persist_dir": "src\\results\\ui_runtime\\chat_session\\vector",
-  "source_artifacts_dir": "src\\results\\ui_runtime\\chat_session\\chunks",
-  "indexed_chunk_count": 1,
-  "embedding_dim": 1024,
-  "model_name": "BAAI/bge-m3",
-  "built_at": "2026-05-11T08:51:04.358693+00:00"
-}
