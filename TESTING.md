@@ -35,7 +35,7 @@ geçti
 CASE-3: PDF TR
 ------------------------------------------------------------
 set:
-1) `Case_Study_TUSA�_LLM.pdf` yukle
+1) `TEST.pdf` yukle
 2) `Belgeleri Hazirla`
 3) soru: `teslimatlar neler`
 
@@ -64,7 +64,7 @@ Introduction of ASHEN Framework: A unified gated fusion architecture that integr
 CASE-5: TUSAS PDF - PROJE OZETI (TR)
 ------------------------------------------------------------
 set:
-1) `Case_Study_TUSAŞ_LLM.pdf` yukle
+1) `TEST.pdf` yukle
 2) `Belgeleri Hazirla`
 3) soru: `Bu dokumanda projenin ozeti nedir?`
 

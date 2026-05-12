@@ -121,7 +121,7 @@ model_name: BAAI/bge-m3
 device: cuda
 
 belge bazli chunk sayilari:
-Case_Study_TUSAS_LLM.md -> 10
+TEST.md -> 10
 merkezbankasi.md -> 36
 merkezbankasi_eng.md -> 34
 tarama_eng.md -> 1
@@ -262,7 +262,6 @@ sebep doc_id mismatch idi.
 jsonlde ascii doc_id kullaniyordum ama indexte turkce karakterli id vardi.
 
 ornek:
-- Case_Study_TUSAS_LLM yerine Case_Study_TUSAŞ_LLM
 - merkezbankasi yerine merkezbankası
 - merkezbankasi_eng yerine merkezbankası_eng
 

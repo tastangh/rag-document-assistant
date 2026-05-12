@@ -89,7 +89,7 @@ def normalize_tr(text: str) -> str:
 def question_doc_hint(question: str) -> Optional[str]:
     q = normalize_tr(question)
     if any(k in q for k in ("case study", "case-study", "tusaş", "tusas")):
-        return "case_study_tusaş_llm"
+        return "test"
     if any(k in q for k in ("cv", "mehmet taştan", "mehmet tastan")):
         return "mehmet-taştan-cv-en (1)"
     if "merkez bankası" in q or "merkez bankasi" in q or "cbrt" in q:

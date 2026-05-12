@@ -80,7 +80,7 @@ UI:
 
 ## 3) Hizli Smoke Test
 
-1. UI'dan `Case_Study_TUSAŞ_LLM.pdf` yukle.
+1. UI'dan `TEST.pdf` yukle.
 2. `Belgeleri Hazirla` tikla.
 3. Su sorulari dene:
    - `Teslimatta istenen dosyalar nelerdir?`
