@@ -45,6 +45,162 @@
     {
       "role": "user",
       "content": "Bu dokumanda projenin ozeti nedir?"
+    },
+    {
+      "role": "assistant",
+      "content": "- 1. Kullanıcıların çeşitli formatlardaki belgeleri yükleyerek bu belgeler üzerinden doğal dil ile soru sorabileceği, yapay zeka destekli bir Belge Analiz ve Soru-Cevap Sistemi geliştirilmesi bekleniyor. Sistem, yüklenen belgeleri işleyecek, içeriğini analiz edecek ve kullanıcı sorularına belgelerden elde ettiği bilgiye dayalı yanıtlar verecektir. - 2. Sistem, resim formatında (JPG, PNG) belgelerdeki metinleri okuyabilmeli, Türkçe ve İngilizce desteklenmeli ve kullanıcı sorularına tutarlı yanıtlar verilmelidir. Ayrıca, belgede olmayan bilgileri üretmemeli (hallucination) olmalıdır. - 3. Proje, bir Minimum Viable Product (MVP) olarak işlevsel bir çözüm sunmayı hedeflerken, teslimatın kolayca test edilebilir, geliştirilebilir ve çalıştırılabilir formatta olması değerlendirilir. - 4. Teslimatlar arasında geliştirme süreci kaydı (DEVLOG.md), test senaryoları ve sonuçları (TESTING.md), sistemin tanıtımı içeren README.md, kaynak kodlar ve bir demo video yer alacaktır.",
+      "sources": [
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c1",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] ## Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme Sayfa 1 / 4 TEKNİK DEĞERLENDİRME Case Study Poz..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c3",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] 3 Demo Video Sisteminizi müşteriye tanıttığınız kısa bir video (3-5 dk). Format ve içerik tercihi si..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c2",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] e tutarlı yanıtlar alabilmeli. Doğruluk Sistem, belgede olmayan bilgileri üretmemeli (hallucination)..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c4",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] .md — Test ve Doğrulama Sisteminizi nasıl test ettiğinizi ve sınırlarını belgeleyin. Bu dosyada aşağ..."
+        }
+      ],
+      "details": {
+        "latency_sec": 10.932,
+        "sources_count": 4,
+        "fallback_used": false,
+        "supported_ratio": 0.8,
+        "confidence": "medium",
+        "query_mode": "rag_interpret"
+      }
+    },
+    {
+      "role": "user",
+      "content": "Teslim yontemi nedir"
+    },
+    {
+      "role": "assistant",
+      "content": "- Teslim yöntemi GitHub repository linki olarak belirtilmiştir.",
+      "sources": [
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c4",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] .md — Test ve Doğrulama Sisteminizi nasıl test ettiğinizi ve sınırlarını belgeleyin. Bu dosyada aşağ..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c2",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] e tutarlı yanıtlar alabilmeli. Doğruluk Sistem, belgede olmayan bilgileri üretmemeli (hallucination)..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c1",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] ## Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme Sayfa 1 / 4 TEKNİK DEĞERLENDİRME Case Study Poz..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c3",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] 3 Demo Video Sisteminizi müşteriye tanıttığınız kısa bir video (3-5 dk). Format ve içerik tercihi si..."
+        }
+      ],
+      "details": {
+        "latency_sec": 7.223,
+        "sources_count": 4,
+        "fallback_used": false,
+        "supported_ratio": 1.0,
+        "confidence": "high",
+        "query_mode": "rag_fact"
+      }
+    },
+    {
+      "role": "user",
+      "content": "`Bu case study icin 3 fazli bir calisma plani onerir misin?"
+    },
+    {
+      "role": "assistant",
+      "content": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": [],
+      "details": {
+        "latency_sec": 0.251,
+        "sources_count": 0,
+        "fallback_used": true,
+        "supported_ratio": 1.0,
+        "confidence": "high",
+        "query_mode": "rag_interpret"
+      }
+    },
+    {
+      "role": "user",
+      "content": "What are the expected deliverables in this case study?"
+    },
+    {
+      "role": "assistant",
+      "content": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": [],
+      "details": {
+        "latency_sec": 0.16,
+        "sources_count": 0,
+        "fallback_used": true,
+        "supported_ratio": 1.0,
+        "confidence": "high",
+        "query_mode": "rag_interpret"
+      }
+    },
+    {
+      "role": "user",
+      "content": "`Bu dokumanda butce ve maas bilgileri nedir"
+    },
+    {
+      "role": "assistant",
+      "content": "Bağlamda yeterli bilgi bulunamadı",
+      "sources": [
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c4",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] .md — Test ve Doğrulama Sisteminizi nasıl test ettiğinizi ve sınırlarını belgeleyin. Bu dosyada aşağ..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c3",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] 3 Demo Video Sisteminizi müşteriye tanıttığınız kısa bir video (3-5 dk). Format ve içerik tercihi si..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c2",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] e tutarlı yanıtlar alabilmeli. Doğruluk Sistem, belgede olmayan bilgileri üretmemeli (hallucination)..."
+        },
+        {
+          "doc_id": "Case_Study_TUSAŞ_LLM",
+          "page": 1,
+          "chunk_id": "Case_Study_TUSAŞ_LLM::p1::c5",
+          "text_preview": "[Dokuman: Case_Study_TUSAŞ_LLM | Sayfa: 1 | Bolum: Sayfa 1\\n\\nAI/ML Developer – Teknik Değerlendirme | Tablo: false] ararlar da değerlendirmenin bir parçası olacaktır. • Sorularınız olursa çekinmeden iletişime geçebil..."
+        }
+      ],
+      "details": {
+        "latency_sec": 5.596,
+        "sources_count": 4,
+        "fallback_used": true,
+        "supported_ratio": 0.0,
+        "confidence": "low",
+        "query_mode": "rag_fact"
+      }
     }
   ],
   "ready": true,

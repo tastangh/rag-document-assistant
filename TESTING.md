@@ -13,6 +13,8 @@ verify:
 - cevap fallback degilse en az 1 kaynak gorunmeli
 - fallback olursa `Baglamda yeterli bilgi bulunamadi` metni donmeli
 
+GEÇTİ 
+Belge, 3-Hidroksil-3-metilbütanoik asit (Tur 13) bileşiğinin farelerdeki akut toksisite etkilerini inceleyen bir deney sunuyor. - Deneyde farklı dozajlarda (5, 10, 10, 10, 10 mg/kg) bileşiğin etkileri gözlemlenmiş ve 48 saat içinde sağ kalanlar tamamen iyileşmiş. - Bileşiğin merkezi sinir sistemi (CNS) depresanı olduğu belirtilmiş; solunum baskısı, damar daralması ve hareket kaybı gibi semptomlar gözlemlenmiştir. - İnsanlarda tek deneme için önerilen güvenli doz 0.3 mg inhalasyon yoluyla önerilmiştir. - Deney, Litchfield ve Wilcoxon (1948) tarafından referans verilen bir çalışma çerçevesinde yapılmıştır.
 ------------------------------------------------------------
 CASE-2: SCAN PNG TR
 ------------------------------------------------------------
@@ -26,6 +28,9 @@ verify:
 - cevap + kaynaklar paneli acilabiliyor olmali
 - OCR gurultusu olsa da sistem crash etmemeli
 
+
+geçti 
+Öğretmenler için klasik eserlerin satın alınması Vekilin klasik eserlerin alınmasına yönelik indirimli fiyat ve taksitli ödeme imkanları sunulmaktadır. Ayrıca, başvuruların nasıl yapılacağı ve ilgili kurumların belirtilmesi yer almaktadır. 2. Yerel yönetimlerle ilgili resmi istekler Belgede bir köyün yeniden kurulması ve bazı resmi isteklerin yer aldığı bilgiler yer almaktadır. Bu bağlamda, Dahiliye Vekili tarafından yapılan istekler ve ilgili kurumlara gönderilen dilekçeler detaylandırılmaktadır. 3. Eğitim alanları ve katalog bilgileri Belgede çeşitli eğitim alanları (örneğin, edebiyat, sanatlar, tarih) ve bu alanlara ait detaylı katalog bilgileri yer almaktadır. Bu bilgiler, eğitim programları veya kurs kataloğu olabilir. 4. Taksit ödeme süresi ve sona erme tarihi Klasik eserlerin satın alınmasında taksitli ödeme seçeneğinin sona erme tarihi belirtilmektedir. Bu belge, eğitim, yerel yönetim ve resmi işlemler gibi farklı alanlara ait bilgiler içeriyor olup, genellikle resmi bir belge veya katalog niteliğindedir.
 ------------------------------------------------------------
 CASE-3: PDF TR
 ------------------------------------------------------------
@@ -52,15 +57,10 @@ verify:
 - cevap anlamsal olarak makale amacina deginmeli
 - kaynak listesinde ayni dokumana ait chunklar gorunmeli
 
-------------------------------------------------------------
-3) KABUL KRITERI (4/4)
-------------------------------------------------------------
+geçti
+Introduction of ASHEN Framework: A unified gated fusion architecture that integrates CLIP, YOLO, HOI, and text caption modalities for weakly supervised video anomaly detection. 2. Pure Temporal Transformer: A novel temporal modeling approach that operates on pre-extracted features without requiring end-to-end video backbone fine-tuning. 3. Curated Ashen Dataset: A balanced surveillance dataset comprising 1,600 videos across nine hostile-intent categories, designed for training and evaluating anomaly detection systems. 4. Comprehensive Ablation Study: Demonstrated that multimodal fusion significantly improves accuracy and Macro-AUC, with specific results showing improvements over state-of-the-art methods. 5. Strong Experimental Results: Achieved 98.09% binary AUC on the Ashen Dataset and 96.22% on UCF-Crime using the CLIP baseline, along with nine-class classification accuracy and macro-AUC using a triple-fusion model. 6. Future Work Directions: Proposed lightweight adapters, domain-specific feature refinement, class-adaptive thresholds, and incremental learning for real-world deployment in autonomous surveillance systems.
 
-- Her case'de uygulama hata vermeden tamamlanmali.
-- En az 3 case'de fallback disi kaynakli cevap alinmali.
-- Tum case'lerde UI yanitsiz kalma/crash olmamali.
-
-------------------------------------------------------------
+------------------------------
 CASE-5: TUSAS PDF - PROJE OZETI (TR)
 ------------------------------------------------------------
 set:

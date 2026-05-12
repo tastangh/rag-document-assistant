@@ -24,6 +24,7 @@ from retrieval import DEFAULT_COLLECTION
 from .rag import (
     auto_rag_params,
     classify_query_mode,
+    doc_id_from_doc_entry,
     doc_options,
     is_small_talk,
     ollama_health,
@@ -317,15 +318,20 @@ def main() -> None:
                 allow_extractive_on_guardrail_fail=bool(auto_params.get("allow_extractive_on_guardrail_fail", False)),
             )
 
-            # Kurtarma denemesi: Kaynaksiz fallback geldi ise daha toleransli ayarla bir kez daha dene.
+            # Kurtarma denemesi: fallback geldi ise daha toleransli ayarla bir kez daha dene.
             primary_sources = list(result.get("sources", []) or [])
             primary_verification = result.get("verification", {}) or {}
             primary_fallback = bool(primary_verification.get("fallback_used", False))
-            if primary_fallback and len(primary_sources) == 0:
+            should_retry = primary_fallback or (query_mode == "rag_interpret" and len(primary_sources) == 0)
+            if should_retry:
                 retry_initial_k = max(int(st.session_state.initial_k), 24)
                 retry_final_k = max(int(st.session_state.final_k), 6)
                 retry_temp = min(0.6, float(effective_temperature))
                 retry_top_p = min(0.95, float(effective_top_p))
+                ready_docs = [d for d in st.session_state.get("docs", []) if d.get("status") == "ready"]
+                forced_doc_id = selected_doc_id
+                if not forced_doc_id and len(ready_docs) == 1:
+                    forced_doc_id = doc_id_from_doc_entry(ready_docs[0])
                 result = ask_question(
                     question=prompt,
                     persist_dir=paths["vector_dir"],
@@ -339,8 +345,8 @@ def main() -> None:
                     strict_guardrail=False,
                     fast_mode=False,
                     context_limit=6,
-                    doc_id=selected_doc_id,
-                    retrieval_min_overlap=min(0.02, float(st.session_state.retrieval_min_overlap)),
+                    doc_id=forced_doc_id,
+                    retrieval_min_overlap=0.0,
                     system_instructions=st.session_state.system_instructions,
                     temperature=retry_temp,
                     thinking_level=st.session_state.thinking_level,

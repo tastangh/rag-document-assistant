@@ -975,3 +975,11 @@ gercek test gozlemleri:
 Son asamada çok karmaşık gelistirdiğimiz sistemin gereksiz fonkları vb temizleyip temiz bir ürün haline getirilecektir.
 
 LLM desteği ile karışık ve uzun yaptığım python dosyalarını böldüm.
+
+
+
+
+
+# en baştan yapsam neleri farklı yapardım
+
+tüm modelleri , rerank embedding ocr, paddle vb dahil hepsini offline olarak bir models klasöründe tutmalıyız

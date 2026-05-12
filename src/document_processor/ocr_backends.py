@@ -3,6 +3,8 @@ from __future__ import annotations
 import inspect
 import logging
 import os
+import sys
+import types
 from typing import Any, Dict, List, Sequence, Tuple
 
 import numpy as np
@@ -14,6 +16,30 @@ PaddleOCR = None
 PPStructureV3 = None
 PPStructure = None
 logger = logging.getLogger(__name__)
+
+
+def _install_safe_langchain_splitter_stub() -> None:
+    """Prevent paddlex langchain shim from importing heavy splitter deps on Windows.
+
+    paddlex -> langchain_shim tries:
+      from langchain_text_splitters import RecursiveCharacterTextSplitter
+    That import can pull sentence_transformers/datasets/pyarrow and crash.
+    We provide a tiny compatible stub just for this symbol.
+    """
+    if "langchain_text_splitters" in sys.modules:
+        return
+
+    stub = types.ModuleType("langchain_text_splitters")
+
+    class RecursiveCharacterTextSplitter:  # pragma: no cover - runtime compatibility shim
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def split_text(self, text: str):
+            return [text] if text is not None else []
+
+    stub.RecursiveCharacterTextSplitter = RecursiveCharacterTextSplitter
+    sys.modules["langchain_text_splitters"] = stub
 
 
 def init_engines(processor: Any) -> None:
@@ -29,6 +55,7 @@ def init_engines(processor: Any) -> None:
 
     global PaddleOCR, PPStructureV3, PPStructure
     if PaddleOCR is None:
+        _install_safe_langchain_splitter_stub()
         from paddleocr import PaddleOCR as _PaddleOCR
         PaddleOCR = _PaddleOCR
         try:
