@@ -1,10 +1,20 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, TypedDict
+
+
+class ModelPreset(TypedDict):
+    id: str
+    label: str
+    ocr_lang: str
+    ocr_profile: str
+    embedding_model: str
+    reranker_model: str
+    llm_model: str
 
 # 5 adet, bu proje icin pratik preset (TR agirlikli RAG + cok dilli alternatifler)
-MODEL_PRESETS: List[Dict[str, str]] = [
+MODEL_PRESETS: List[ModelPreset] = [
     {
         "id": "tr_balanced",
         "label": "TR Balanced (Recommended)",
@@ -58,11 +68,11 @@ RERANK_MODELS: List[str] = sorted({row["reranker_model"] for row in MODEL_PRESET
 LLM_MODELS: List[str] = sorted({row["llm_model"] for row in MODEL_PRESETS})
 OCR_LANG_OPTIONS: List[str] = ["tr", "en"]
 OCR_PROFILE_OPTIONS: List[str] = ["default", "lightweight"]
-OCR_BACKEND_OPTIONS: List[str] = ["auto", "paddle", "opendataloader_pdf"]
-OCR_DEVICE_MODE_OPTIONS: List[str] = ["auto", "cpu", "gpu"]
+OCR_BACKEND_OPTIONS: List[str] = ["paddle"]
+OCR_DEVICE_MODE_OPTIONS: List[str] = ["cpu"]
 
 
-def get_preset(preset_id: str) -> Dict[str, str]:
+def get_preset(preset_id: str) -> ModelPreset:
     for row in MODEL_PRESETS:
         if row["id"] == preset_id:
             return row

@@ -970,3 +970,8 @@ gercek test gozlemleri:
   - ozet sorusunda anlamli ve kaynakla uyumlu cikti alindi.
 - bu sonuc OCR gurultusu + soru netligi + guardrail esiginin birlikte kaliteyi belirledigini tekrar dogruladi.
 
+# 12-06-2026 LAST DANCE
+
+Son asamada çok karmaşık gelistirdiğimiz sistemin gereksiz fonkları vb temizleyip temiz bir ürün haline getirilecektir.
+
+LLM desteği ile karışık ve uzun yaptığım python dosyalarını böldüm.
