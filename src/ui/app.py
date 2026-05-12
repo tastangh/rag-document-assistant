@@ -241,6 +241,7 @@ def main() -> None:
 
     with st.chat_message("assistant"):
         try:
+            status = st.status("Dusunuyorum...", expanded=False)
             if query_mode == "chat" or is_small_talk(prompt):
                 t0 = time.perf_counter()
                 result = chat_without_rag(
@@ -260,6 +261,7 @@ def main() -> None:
                 render_debug(details)
                 st.session_state.messages.append({"role": "assistant", "content": ans, "details": details})
                 save_state(paths, session_id, access_key)
+                status.update(label="Tamamlandi", state="complete")
                 return
 
             if not st.session_state.get("warmup_done", False):
@@ -314,6 +316,42 @@ def main() -> None:
                 citation_min_coverage=float(auto_params.get("citation_min_coverage", st.session_state.citation_min_coverage)),
                 allow_extractive_on_guardrail_fail=bool(auto_params.get("allow_extractive_on_guardrail_fail", False)),
             )
+
+            # Kurtarma denemesi: Kaynaksiz fallback geldi ise daha toleransli ayarla bir kez daha dene.
+            primary_sources = list(result.get("sources", []) or [])
+            primary_verification = result.get("verification", {}) or {}
+            primary_fallback = bool(primary_verification.get("fallback_used", False))
+            if primary_fallback and len(primary_sources) == 0:
+                retry_initial_k = max(int(st.session_state.initial_k), 24)
+                retry_final_k = max(int(st.session_state.final_k), 6)
+                retry_temp = min(0.6, float(effective_temperature))
+                retry_top_p = min(0.95, float(effective_top_p))
+                result = ask_question(
+                    question=prompt,
+                    persist_dir=paths["vector_dir"],
+                    collection_name=DEFAULT_COLLECTION,
+                    initial_k=retry_initial_k,
+                    final_k=retry_final_k,
+                    device=RETRIEVAL_DEVICE,
+                    disable_rerank=False,
+                    model_name=st.session_state.model_name,
+                    reranker_model=resolve_local_hf_model(str(st.session_state.reranker_model), "reranker"),
+                    strict_guardrail=False,
+                    fast_mode=False,
+                    context_limit=6,
+                    doc_id=selected_doc_id,
+                    retrieval_min_overlap=min(0.02, float(st.session_state.retrieval_min_overlap)),
+                    system_instructions=st.session_state.system_instructions,
+                    temperature=retry_temp,
+                    thinking_level=st.session_state.thinking_level,
+                    top_k=int(st.session_state.top_k),
+                    top_p=retry_top_p,
+                    repeat_penalty=float(st.session_state.repeat_penalty),
+                    guardrail_threshold=max(0.35, float(auto_params.get("guardrail_threshold", st.session_state.guardrail_threshold)) - 0.1),
+                    citation_min_coverage=max(0.5, float(auto_params.get("citation_min_coverage", st.session_state.citation_min_coverage)) - 0.2),
+                    allow_extractive_on_guardrail_fail=True,
+                )
+
             latency = time.perf_counter() - t0
             answer = str(result.get("answer", ""))
             answer_for_ui = strip_inline_citations(answer)
@@ -332,9 +370,14 @@ def main() -> None:
             render_debug(details)
             st.session_state.messages.append({"role": "assistant", "content": (answer_for_ui or answer), "sources": sources, "details": details})
             save_state(paths, session_id, access_key)
+            status.update(label="Tamamlandi", state="complete")
         except Exception as exc:
             err = f"Bir hata oldu: {exc}"
             st.error(err)
             st.session_state.messages.append({"role": "assistant", "content": err})
             save_state(paths, session_id, access_key)
+            try:
+                status.update(label="Hata", state="error")
+            except Exception:
+                pass
 

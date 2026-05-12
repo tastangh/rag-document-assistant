@@ -130,7 +130,8 @@ def get_sparse_candidates(
     q_tokens = tokenize_tr(question)
     if not q_tokens:
         return []
-    docs = collection.get(where=where_filter, include=["documents", "metadatas", "ids"])
+    # Chroma'da "ids" include listesine yazilmaz; ids her zaman doner.
+    docs = collection.get(where=where_filter, include=["documents", "metadatas"])
     ids = docs.get("ids", []) or []
     documents = docs.get("documents", []) or []
     metadatas = docs.get("metadatas", []) or []

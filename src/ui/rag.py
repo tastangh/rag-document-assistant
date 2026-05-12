@@ -149,6 +149,8 @@ def classify_query_mode(text: str, rag_ready: bool) -> str:
     if not rag_ready:
         return "chat"
     interpret_markers = ["yorumla", "değerlendir", "degerlendir", "özetle", "ozetle", "hangi konferans", "sence", "çıkarım", "cikarim", "öner", "oner", "uygun mu", "ne anlatıyor", "ne anlatiyor"]
+    # "ozeti nedir" gibi sorular "nedir" nedeniyle fact moda dusuyordu; once yorum/ozet niyeti yakalansin.
+    interpret_markers.extend(["özet", "ozet", "özeti", "ozeti"])
     fact_markers = ["kaç", "kac", "nedir", "sayi", "sayı", "sayilar", "sayılar", "numara", "hangi dergi", "hangi sayfa", "tarih", "deadline", "teslim", "kim", "nerede", "madde", "başlık", "baslik"]
     if any(m in q for m in interpret_markers):
         return "rag_interpret"
@@ -159,7 +161,15 @@ def classify_query_mode(text: str, rag_ready: bool) -> str:
 
 def auto_rag_params(mode: str) -> Dict[str, Any]:
     if mode == "rag_fact":
-        return {"strict_guardrail": True, "guardrail_threshold": 0.55, "citation_min_coverage": 0.90, "temperature_boost": 0.0, "top_p_floor": 0.85, "temperature_cap": 0.45, "allow_extractive_on_guardrail_fail": False}
+        return {
+            "strict_guardrail": True,
+            "guardrail_threshold": 0.50,
+            "citation_min_coverage": 0.70,
+            "temperature_boost": 0.0,
+            "top_p_floor": 0.85,
+            "temperature_cap": 0.45,
+            "allow_extractive_on_guardrail_fail": True,
+        }
     if mode == "rag_interpret":
         return {"strict_guardrail": True, "guardrail_threshold": 0.45, "citation_min_coverage": 0.70, "temperature_boost": 0.10, "top_p_floor": 0.90, "temperature_cap": 0.70, "allow_extractive_on_guardrail_fail": True}
     return {"strict_guardrail": False, "guardrail_threshold": 0.40, "citation_min_coverage": 0.0, "temperature_boost": 0.15, "top_p_floor": 0.90, "temperature_cap": 1.10, "allow_extractive_on_guardrail_fail": False}
