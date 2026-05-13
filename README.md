@@ -114,3 +114,5 @@ UI:
   - Bu projede OCR import zinciri icin koruyucu shim eklendi; yine olursa venv'i temiz kur.
 - `Baglamda yeterli bilgi bulunamadi`:
   - Dokuman `ready` mi kontrol et, sonra soruyu tekrar dene (sistem otomatik retry yapiyor).
+
+# KRİTİK NOT yeni bir belge veya çalışmada reset index + chat e tıklamayı unutmayınız .
