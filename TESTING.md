@@ -248,7 +248,7 @@ temiz ve güvenilir bir çıktı gelmedi
 "Fevzi Selen. Öğretmen Okulu Müdürü, Edirne" adresinden 200 kuruş karşılığında temin edilebilecek olan eserin ilgili kişilerce tavsiye edilmesi ricası yapılmıştır .
 "Edirne" adresinden 200 kuruş karşılığında temin edilebilecek olan eserin ilgili kişilerce tavsiye edilmesi ricası yapılmıştır .
 
-Cevap tam tıksa olmasa da doğru 
+Cevap kısa net olmasa da doğru 
 
 verify:
 - osmanlica/tarihsel baski kaynakli OCR hatalari sistemi bozmamali
