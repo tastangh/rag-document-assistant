@@ -139,21 +139,3 @@ verify:
 GEÇTİ
 
 
-tarama_eng.png
-Yorum: Bu belgedeki deneyin ana çıkarımı nedir?
-Bilgi: Solution 5 için dosage değeri kaç mg/kg?
-tarama_eng2.png
-Yorum: Belge genel olarak hangi konuyu ve bulguyu anlatıyor?
-Bilgi: Belgede geçen en yüksek doz veya konsantrasyon değeri nedir?
-tarama_tr.png
-Yorum: Bu belgenin ana mesajını kısa özetler misin?
-Bilgi: Belgede belirtilen başvuru/son tarih nedir?
-tarama_tr2.png
-Yorum: Belgede kurumlar arası yazışmaların amacı nedir?
-Bilgi: Taksitli ödeme için belirtilen bitiş tarihi nedir?
-merkezbankası.pdf
-Yorum: Raporun para politikası duruşunu nasıl özetlersin?
-Bilgi: Politika faizi yüzde kaç olarak belirtilmiş?
-merkezbankası_eng.pdf
-Yorum: What is the report’s overall policy stance?
-Bilgi: What exact policy rate is stated in the documen
