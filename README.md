@@ -7,7 +7,7 @@ Yerel (offline/air-gapped uyumlu) RAG tabanli belge analiz ve soru-cevap sistemi
 ### Adim 1: Repo'yu klonla
 
 ```powershell
-git clone <REPO_URL>
+git clone https://github.com/tastangh/rag-document-assistant.git
 cd rag-document-assistant
 ```
 
