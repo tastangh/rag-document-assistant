@@ -1001,3 +1001,9 @@ Tüm cache path’lerini doğrudan models/ altına yönlendirirdim.
 GPU/CPU uyumluluğu için çift profil dağıtırdım:
 windows-cpu-stable ve linux-gpu gibi net kurulum profilleriyle sürücü/DLL riskini en başta azaltırdım.
 Özet: RAG kalitesi kadar operasyonel taşınabilirlik de kritik. Bu yüzden “tek klasörde offline model yönetimi + sürüm manifesti + doğrulama kapısı” yaklaşımı en doğru temel olurdu.
+
+
+# Süre fazla olsaydı yapacaklarım 
+OCR kalite temizliği
+Özellikle TR tarama case’lerinde dağınık OCR çıktısını “final cevapta” normalize et (cilt/sayı/tarih gibi alanları temiz ver).
+
